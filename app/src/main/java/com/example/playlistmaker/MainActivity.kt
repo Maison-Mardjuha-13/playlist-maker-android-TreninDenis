@@ -1,5 +1,6 @@
 package com.example.playlistmaker
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -73,7 +74,7 @@ fun MainScreen() {
                     .height(60.dp)
                     .padding(8.dp)
                     .clickable {
-                        Toast.makeText(context, "Нажата кнопка \"Поиск\"", Toast.LENGTH_SHORT).show()
+                        context.startActivity(Intent(context, SearchActivity::class.java))
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -97,10 +98,7 @@ fun MainScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .padding(8.dp)
-                    .clickable {
-                        Toast.makeText(context, "Нажата кнопка \"Плейлисты\"", Toast.LENGTH_SHORT).show()
-                    },
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -123,10 +121,7 @@ fun MainScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .padding(8.dp)
-                    .clickable {
-                        Toast.makeText(context, "Нажата кнопка \"Избранное\"", Toast.LENGTH_SHORT).show()
-                    },
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -151,7 +146,7 @@ fun MainScreen() {
                     .height(60.dp)
                     .padding(8.dp)
                     .clickable {
-                        Toast.makeText(context, "Нажата кнопка \"Настройки\"", Toast.LENGTH_SHORT).show()
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
