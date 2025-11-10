@@ -1,4 +1,4 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
