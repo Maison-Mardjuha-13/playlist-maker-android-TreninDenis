@@ -1,13 +1,17 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.domain.api
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.playlistmaker.domain.models.AppScreen
 import com.example.playlistmaker.ui.main.MainScreen
 import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
+import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
@@ -18,13 +22,19 @@ fun PlaylistHost(navController: NavHostController) {
         composable(AppScreen.MAIN.name) {
             MainScreen(
                 onSearchClick = { navigateToSearch(navController) },
-                onSettingsClick = { navigateToSettings(navController) }
+                onSettingsClick = { navigateToSettings(navController) },
+                onBackClick = {}
             )
         }
 
         composable(AppScreen.SEARCH.name) {
+            val searchViewModel: SearchViewModel = viewModel(
+                factory = SearchViewModel.getViewModelFactory()
+            )
             SearchScreen(
-                onBackClick = { navigateToMain(navController) }
+                viewModel = searchViewModel,
+                onBackClick = { navigateToMain(navController) },
+                modifier = Modifier
             )
         }
 
