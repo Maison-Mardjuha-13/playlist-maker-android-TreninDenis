@@ -1,8 +1,6 @@
 package com.example.playlistmaker
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -17,29 +15,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.playlistmaker.ui.theme.PlaylistmakerTheme
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PlaylistmakerTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainScreen()
-                }
-            }
+            val navController = rememberNavController()
+            PlaylistHost(navController = navController)
         }
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
     val context = LocalContext.current
 
     Column(
@@ -49,12 +43,12 @@ fun MainScreen() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(100.dp)
                 .statusBarsPadding()
                 .background(Color(0xFF2196F3)),
         ) {
             Text(
-                text = "Playlist Maker",
+                text = " Playlist Maker",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -64,7 +58,7 @@ fun MainScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(8.dp)
 
         ) {
 
@@ -74,7 +68,7 @@ fun MainScreen() {
                     .height(60.dp)
                     .padding(8.dp)
                     .clickable {
-                        context.startActivity(Intent(context, SearchActivity::class.java))
+                        onSearchClick()
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -146,7 +140,7 @@ fun MainScreen() {
                     .height(60.dp)
                     .padding(8.dp)
                     .clickable {
-                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                        onSettingsClick()
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -166,14 +160,5 @@ fun MainScreen() {
                 )
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    PlaylistmakerTheme {
-        MainScreen()
     }
 }
