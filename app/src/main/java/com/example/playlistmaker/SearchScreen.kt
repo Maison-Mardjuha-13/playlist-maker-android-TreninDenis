@@ -1,9 +1,5 @@
 package com.example.playlistmaker
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,18 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-class SearchActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SearchScreen()
-        }
-    }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
@@ -59,7 +48,7 @@ fun SearchScreen() {
                 modifier = Modifier
                     .size(32.dp)
                     .clickable {
-                        context.startActivity(Intent(context, MainActivity::class.java))
+                        onBackClick()
                     },
                 tint = Color.Black
             )
