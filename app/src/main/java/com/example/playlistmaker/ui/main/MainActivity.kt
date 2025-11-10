@@ -3,6 +3,8 @@ package com.example.playlistmaker.ui.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,14 +20,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
-import com.example.playlistmaker.PlaylistHost
+import com.example.playlistmaker.domain.api.PlaylistHost
+import com.example.playlistmaker.ui.theme.PlaylistmakerTheme
+import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 class MainActivity : ComponentActivity() {
+    private val searchViewModel by viewModels<SearchViewModel>{
+        SearchViewModel.getViewModelFactory()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
-            PlaylistHost(navController = navController)
+            PlaylistmakerTheme {
+                val navController = rememberNavController()
+                PlaylistHost(navController = navController)
+            }
         }
     }
 }
@@ -33,7 +43,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     onSearchClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
