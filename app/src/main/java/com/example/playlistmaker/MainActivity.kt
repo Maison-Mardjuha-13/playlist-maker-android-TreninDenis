@@ -2,7 +2,6 @@ package com.example.playlistmaker
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -49,12 +48,12 @@ fun MainScreen() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(100.dp)
                 .statusBarsPadding()
                 .background(Color(0xFF2196F3)),
         ) {
             Text(
-                text = "Playlist Maker",
+                text = " Playlist Maker",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -64,7 +63,7 @@ fun MainScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(8.dp)
 
         ) {
 
