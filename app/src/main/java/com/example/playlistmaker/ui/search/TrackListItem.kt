@@ -1,4 +1,4 @@
-package com.example.playlistmaker.ui.viewmodel
+package com.example.playlistmaker.ui.search
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +23,7 @@ fun TrackListItem(track: Track) {
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_music),
-            contentDescription = "Трек ${track.trackName}"
+            contentDescription = "${track.trackName}"
         )
         Column(
             modifier = Modifier.weight(1f),

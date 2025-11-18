@@ -30,9 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.playlistmaker.R
@@ -42,6 +42,13 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     var isDarkTheme by remember { mutableStateOf(false) }
 
+    val small = dimensionResource(R.dimen.small)
+    val medium_size = dimensionResource(R.dimen.medium)
+    val large_size = dimensionResource(R.dimen.large)
+    val exlarge_size = dimensionResource(R.dimen.exlarge)
+    val largetext_size = dimensionResource(R.dimen.largetext).value.sp
+    var set_title = stringResource(R.string.settings_name)
+    val xxl = dimensionResource(R.dimen.xxl) //64dp
     val darkTheme = stringResource(R.string.dark_theme)
     val shareAppText = stringResource(R.string.share_app)
     val contactSupportText = stringResource(R.string.contact_support)
@@ -50,34 +57,37 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     val emailSubject = stringResource(R.string.email_subject)
     val emailBody = stringResource(R.string.email_body)
     val offerUrl = stringResource(R.string.offer_url)
+    val share_text = stringResource(R.string.share_text)
+    val share = stringResource(R.string.share)
+    val choseem = stringResource(R.string.choose_email)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(16.dp)
+            .padding(medium_size)
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = large_size),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Назад",
+                contentDescription = null,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge_size)
                     .clickable {
                         onBackClick()
                     },
                 tint = Color.Black
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(medium_size))
             Text(
-                text = "Настройки",
-                fontSize = 24.sp,
+                text = set_title,
+                fontSize = largetext_size,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -91,13 +101,13 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
-                    .padding(8.dp),
+                    .height(xxl)
+                    .padding(small),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = darkTheme,
-                    fontSize = 18.sp,
+                    fontSize = largetext_size,
                     modifier = Modifier.weight(1f)
                 )
                 Switch(
@@ -110,33 +120,34 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
-                    .padding(8.dp)
+                    .height(xxl)
+                    .padding(small)
                     .clickable{
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "Посмотри это крутое приложение - Playlist Maker!")
+                            putExtra(Intent.EXTRA_TEXT, share_text)
                         }
-                        ContextCompat.startActivity(context, Intent.createChooser(shareIntent, "Поделиться приложением"), null)
+                        val chooserIntent = Intent.createChooser(shareIntent, share)
+                        ContextCompat.startActivities(context, arrayOf(chooserIntent), null)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = shareAppText,
-                    fontSize = 18.sp,
+                    fontSize = largetext_size,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = Icons.Default.Share,
-                    contentDescription = "Поделиться"
+                    contentDescription = null
                 )
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
-                    .padding(8.dp)
+                    .height(xxl)
+                    .padding(small)
                     .clickable{
                         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:")
@@ -144,40 +155,41 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                             putExtra(Intent.EXTRA_SUBJECT, emailSubject)
                             putExtra(Intent.EXTRA_TEXT, emailBody)
                         }
-                        ContextCompat.startActivity(context, Intent.createChooser(emailIntent, "Выберите почтовый клиент"), null)
+                        val chooserIntent = Intent.createChooser(emailIntent, choseem)
+                        ContextCompat.startActivities(context, arrayOf(chooserIntent), null)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = contactSupportText,
-                    fontSize = 18.sp,
+                    fontSize = largetext_size,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = Icons.Default.Call,
-                    contentDescription = "Поддержка"
+                    contentDescription = null
                 )
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
-                    .padding(8.dp)
+                    .height(xxl)
+                    .padding(small)
                     .clickable {
                         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(offerUrl))
-                        ContextCompat.startActivity(context, browserIntent, null)
+                        ContextCompat.startActivities(context, arrayOf(browserIntent), null)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = userAgreementText,
-                    fontSize = 18.sp,
+                    fontSize = largetext_size,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "Стрелка"
+                    contentDescription = null
                 )
             }
         }

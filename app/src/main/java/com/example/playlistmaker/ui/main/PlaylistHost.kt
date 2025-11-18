@@ -1,4 +1,4 @@
-package com.example.playlistmaker.domain.api
+package com.example.playlistmaker.ui.main
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -8,7 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.playlistmaker.domain.models.AppScreen
-import com.example.playlistmaker.ui.main.MainScreen
+import com.example.playlistmaker.ui.favourite.FavouriteScreen
+import com.example.playlistmaker.ui.playlist.PlaylistScreen
 import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.viewmodel.SearchViewModel
@@ -23,7 +24,8 @@ fun PlaylistHost(navController: NavHostController) {
             MainScreen(
                 onSearchClick = { navigateToSearch(navController) },
                 onSettingsClick = { navigateToSettings(navController) },
-                onBackClick = {}
+                onPlaylistClick = { navigateToPlaylist(navController) },
+                onFavouriteClick = { navigateToFavourite(navController) }
             )
         }
 
@@ -43,6 +45,18 @@ fun PlaylistHost(navController: NavHostController) {
                 onBackClick = { navigateToMain(navController) }
             )
         }
+
+        composable(AppScreen.PLAYLIST.name) {
+            PlaylistScreen(
+                onBackClick = { navigateToMain(navController) }
+            )
+        }
+
+        composable(AppScreen.FAVOURITE.name) {
+            FavouriteScreen(
+                onBackClick = { navigateToMain(navController) }
+            )
+        }
     }
 }
 
@@ -58,4 +72,12 @@ private fun navigateToSearch(navController: NavController) {
 
 private fun navigateToSettings(navController: NavController) {
     navController.navigate(AppScreen.SETTINGS.name)
+}
+
+private fun navigateToPlaylist(navController: NavController) {
+    navController.navigate(AppScreen.PLAYLIST.name)
+}
+
+private fun navigateToFavourite(navController: NavController) {
+    navController.navigate(AppScreen.FAVOURITE.name)
 }
