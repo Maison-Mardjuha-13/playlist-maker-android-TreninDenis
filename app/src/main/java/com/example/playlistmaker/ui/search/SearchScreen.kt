@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,13 +20,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.playlistmaker.R
 import com.example.playlistmaker.ui.viewmodel.SearchState
 import com.example.playlistmaker.ui.viewmodel.SearchViewModel
-import com.example.playlistmaker.ui.viewmodel.TrackListItem
-
 
 
 @Composable
@@ -34,36 +36,52 @@ fun SearchScreen(
     viewModel: SearchViewModel,
     onBackClick: () -> Unit
 ) {
+    val xs = dimensionResource(R.dimen.xs)
+    val medium_size = dimensionResource(com.example.playlistmaker.R.dimen.medium)
+    val large_size = dimensionResource(com.example.playlistmaker.R.dimen.large)
+    val exlarge_size = dimensionResource(com.example.playlistmaker.R.dimen.exlarge)
+    val largetext_size = dimensionResource(com.example.playlistmaker.R.dimen.largetext)
+    val s_title = stringResource(R.string.search_name)
+    val err = stringResource(R.string.err_text)
+    val ent = stringResource(R.string.enter_string)
+
+
     val screenState by viewModel.searchScreenState.collectAsState()
     var text by remember { mutableStateOf("") }
 
+    LaunchedEffect(text) {
+        if (text.isNotEmpty()) {
+            viewModel.searchTrack(text)
+        }
+        viewModel.reset()
+    }
 
     Column(
         modifier = Modifier
-            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+            .padding(top = medium_size, start = medium_size, end = medium_size)
             .fillMaxWidth()
             .statusBarsPadding(),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = large_size),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Назад",
+                contentDescription = null,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge_size)
                     .clickable {
                         onBackClick()
                     },
                 tint = Color.Black
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(medium_size))
             Text(
-                text = "Поиск",
-                fontSize = 24.sp,
+                text = s_title,
+                fontSize = largetext_size.value.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -72,15 +90,25 @@ fun SearchScreen(
             onValueChange = {
                 text = it
             },
-            placeholder = {Text("Поиск")},
+            placeholder = {Text(s_title)},
             leadingIcon = {
                 Icon(
                     modifier = Modifier.clickable {
                         viewModel.searchTrack(text)
                     },
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Search Icon"
+                    contentDescription = null
                 )
+            },
+            trailingIcon = {
+                if (text.isNotEmpty()){
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = null,
+                        modifier = Modifier.clickable {text = ""}
+                    )
+                }
+
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -88,7 +116,7 @@ fun SearchScreen(
         when (screenState) {
             is SearchState.Initial -> {
                 Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Введите строку для поиска")
+                    Text(ent)
                 }
             }
 
@@ -105,7 +133,7 @@ fun SearchScreen(
                 ) {
                     items(tracks.size) { index ->
                         TrackListItem(track = tracks[index])
-                        HorizontalDivider(thickness = 0.5.dp)
+                        HorizontalDivider(thickness = xs)
                     }
                 }
             }
@@ -113,7 +141,7 @@ fun SearchScreen(
             is SearchState.Fail -> {
                 val error = (screenState as SearchState.Fail).error
                 Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Ошибка: $error", color = Color.Red)
+                    Text("$err $error", color = Color.Red)
                 }
             }
         }
