@@ -14,51 +14,51 @@ import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
-@Composable
-fun PlaylistHost(navController: NavHostController) {
-    NavHost(
-        navController = navController,
-        startDestination = AppScreen.MAIN.name
-    ) {
-        composable(AppScreen.MAIN.name) {
-            MainScreen(
-                onSearchClick = { navigateToSearch(navController) },
-                onSettingsClick = { navigateToSettings(navController) },
-                onPlaylistClick = { navigateToPlaylist(navController) },
-                onFavouriteClick = { navigateToFavourite(navController) }
-            )
-        }
-
-        composable(AppScreen.SEARCH.name) {
-            val searchViewModel: SearchViewModel = viewModel(
-                factory = SearchViewModel.getViewModelFactory()
-            )
-            SearchScreen(
-                viewModel = searchViewModel,
-                onBackClick = { navigateToMain(navController) },
-                modifier = Modifier
-            )
-        }
-
-        composable(AppScreen.SETTINGS.name) {
-            SettingsScreen(
-                onBackClick = { navigateToMain(navController) }
-            )
-        }
-
-        composable(AppScreen.PLAYLIST.name) {
-            PlaylistScreen(
-                onBackClick = { navigateToMain(navController) }
-            )
-        }
-
-        composable(AppScreen.FAVOURITE.name) {
-            FavouriteScreen(
-                onBackClick = { navigateToMain(navController) }
-            )
-        }
-    }
-}
+//@Composable
+//fun PlaylistHost(navController: NavHostController) {
+//    NavHost(
+//        navController = navController,
+//        startDestination = AppScreen.MAIN.name
+//    ) {
+//        composable(AppScreen.MAIN.name) {
+//            MainScreen(
+//                onSearchClick = { navigateToSearch(navController) },
+//                onSettingsClick = { navigateToSettings(navController) },
+//                onPlaylistClick = { navigateToPlaylist(navController) },
+//                onFavouriteClick = { navigateToFavourite(navController) }
+//            )
+//        }
+//
+//        composable(AppScreen.SEARCH.name) {
+//            val searchViewModel: SearchViewModel = viewModel(
+//                factory = SearchViewModel.getViewModelFactory()
+//            )
+//            SearchScreen(
+//                viewModel = searchViewModel,
+//                onBackClick = { navigateToMain(navController) },
+//                modifier = Modifier
+//            )
+//        }
+//
+//        composable(AppScreen.SETTINGS.name) {
+//            SettingsScreen(
+//                onBackClick = { navigateToMain(navController) }
+//            )
+//        }
+//
+//        composable(AppScreen.PLAYLIST.name) {
+//            PlaylistScreen(
+//                onBackClick = { navigateToMain(navController) }
+//            )
+//        }
+//
+//        composable(AppScreen.FAVOURITE.name) {
+//            FavouriteScreen(
+//                onBackClick = { navigateToMain(navController) }
+//            )
+//        }
+//    }
+//}
 
 private fun navigateToMain(navController: NavController) {
     navController.navigate(AppScreen.MAIN.name) {
