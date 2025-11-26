@@ -5,5 +5,7 @@ enum class AppScreen {
     SEARCH,
     PLAYLIST,
     FAVOURITE,
-    SETTINGS
+    SETTINGS,
+    NEW_PLAYLIST,
+    TRACK_DETAILS
 }

@@ -21,16 +21,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                MainScreen()
+            PlaylistmakerTheme {
+                val navController = rememberNavController()
+                PlaylistHost(navController = navController)
             }
-//            PlaylistmakerTheme {
-//                val navController = rememberNavController()
-//                PlaylistHost(navController = navController)
-//            }
         }
     }
 }
