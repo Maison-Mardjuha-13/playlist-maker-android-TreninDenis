@@ -19,6 +19,7 @@ import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
+    val playlistViewModel: PlaylistViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = AppScreen.MAIN.name
@@ -51,7 +52,6 @@ fun PlaylistHost(navController: NavHostController) {
         }
 
         composable(AppScreen.PLAYLIST.name) {
-            val playlistViewModel: PlaylistViewModel = viewModel()
             PlaylistsScreen(
                 modifier = Modifier,
                 playlistViewModel = playlistViewModel,
@@ -63,13 +63,15 @@ fun PlaylistHost(navController: NavHostController) {
         }
 
         composable(AppScreen.FAVOURITE.name) {
+            val playlistViewModel: PlaylistViewModel = viewModel()
             FavouriteScreen(
-                onBackClick = { navigateToMain(navController) }
+                onBackClick = { navigateToMain(navController) },
+                onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
+                playlistViewModel = playlistViewModel
             )
         }
 
         composable(AppScreen.NEW_PLAYLIST.name) {
-            val playlistViewModel: PlaylistViewModel = viewModel()
             NewPlaylistScreen(
                 playlistViewModel = playlistViewModel,
                 onSaveClick = { navController.popBackStack() },

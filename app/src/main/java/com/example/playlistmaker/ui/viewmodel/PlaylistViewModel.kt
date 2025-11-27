@@ -1,6 +1,7 @@
 package com.example.playlistmaker.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.creator.DatabaseMock
@@ -72,5 +73,9 @@ class PlaylistViewModel : ViewModel() {
 
     suspend fun getTrackById(trackId: Long): Track? {
         return tracksRepository.getTrackById(trackId)
+    }
+
+    companion object {
+        fun getViewModelFactory(): ViewModelProvider.Factory = PlaylistViewModelFactory()
     }
 }

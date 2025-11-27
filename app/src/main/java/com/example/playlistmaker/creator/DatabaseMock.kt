@@ -20,11 +20,12 @@ class DatabaseMock(
     private val playlists = mutableListOf<Playlist>()
     private val tracks = mutableListOf<Track>()
     private val _playlistsFlow = MutableStateFlow<List<Playlist>>(emptyList())
-    val playlistsFlow: Flow<List<Playlist>> = _playlistsFlow
+    private val _favoritesFlow = MutableStateFlow<List<Track>>(emptyList())
 
     init {
         addTestTracks()
         updatePlaylistsFlow()
+        updateFavoritesFlow()
     }
 
     private fun addTestTracks() {
@@ -139,6 +140,12 @@ class DatabaseMock(
     fun insertTrack(track: Track) {
         tracks.removeIf { it.id == track.id }
         tracks.add(track)
+        updateFavoritesFlow()
+    }
+
+    private fun updateFavoritesFlow() {
+        val favorites = tracks.filter { it.favorite }
+        _favoritesFlow.value = favorites
     }
 
     fun getFavoriteTracks(): Flow<List<Track>> = flow {

@@ -44,6 +44,17 @@ fun TrackDetailsScreen(
         }
     }
 
+    val favoriteTracks by playlistViewModel.favoriteList.collectAsState(emptyList())
+
+    LaunchedEffect(favoriteTracks) {
+        track?.let { currentTrack ->
+            val updatedFavorite = favoriteTracks.any { it.id == currentTrack.id }
+            if (currentTrack.favorite != updatedFavorite) {
+                track = currentTrack.copy(favorite = updatedFavorite)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
