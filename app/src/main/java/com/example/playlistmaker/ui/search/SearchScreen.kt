@@ -34,7 +34,8 @@ import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 fun SearchScreen(
     modifier: Modifier,
     viewModel: SearchViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onTrackClick: (Long) -> Unit
 ) {
     val xs = dimensionResource(R.dimen.xs)
     val medium_size = dimensionResource(com.example.playlistmaker.R.dimen.medium)
@@ -132,8 +133,10 @@ fun SearchScreen(
                     modifier = modifier.fillMaxSize()
                 ) {
                     items(tracks.size) { index ->
-                        TrackListItem(track = tracks[index])
-                        HorizontalDivider(thickness = xs)
+                        TrackListItem(
+                            track = tracks[index],
+                            onClick = { onTrackClick(tracks[index].id) }
+                        )
                     }
                 }
             }
