@@ -1,65 +1,76 @@
-package com.example.playlistmaker.ui.viewmodel
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.domain.api.TracksRepository
-import kotlinx.coroutines.Dispatchers
+import com.example.playlistmaker.ui.viewmodel.SearchState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class SearchViewModel(
-    private val tracksRepository: TracksRepository
+    private val searchRepository: TracksRepository
 ) : ViewModel() {
+
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
-    val searchScreenState: StateFlow<SearchState> = _searchScreenState
+    val searchScreenState: StateFlow<SearchState> = _searchScreenState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var lastSearchQuery: String = ""
 
-    fun searchTrack(expression: String) {
-        println("SearchViewModel: Starting search for '$expression'")
+    fun searchTrack(query: String) {
+        if (query.isBlank()) {
+            android.util.Log.d("SearchViewModel", "Query is blank, showing initial state")
+            _searchScreenState.value = SearchState.Initial
+            return
+        }
+
+        lastSearchQuery = query
         searchJob?.cancel()
+
+        android.util.Log.d("SearchViewModel", "Starting search for: '$query'")
+        _searchScreenState.value = SearchState.Searching
+
         searchJob = viewModelScope.launch {
-            _searchScreenState.value = SearchState.Searching
             delay(500)
 
             try {
-                val foundList = tracksRepository.searchTracks(expression)
-                println("SearchViewModel: Search completed, found ${foundList.size} tracks")
+                android.util.Log.d("SearchViewModel", "Executing repository search")
+                val tracks = searchRepository.searchTracks(query)
+                android.util.Log.d("SearchViewModel", "Search completed. Found ${tracks.size} tracks")
 
-                if (foundList.isEmpty()) {
-                    _searchScreenState.value = SearchState.Fail("Ничего не найдено")
-                    println("SearchViewModel: No tracks found")
-                } else {
-                    _searchScreenState.value = SearchState.Success(foundList)
-                    println("SearchViewModel: Search successful, showing ${foundList.size} tracks")
-                }
+                _searchScreenState.value = SearchState.Success(tracks)
             } catch (e: Exception) {
-                println("SearchViewModel: Search error - ${e.message}")
-                _searchScreenState.value = SearchState.Fail(e.message ?: "Ошибка поиска")
+                android.util.Log.e("SearchViewModel", "Search error: ${e.message}", e)
+                _searchScreenState.value = SearchState.Fail(e.message ?: "Unknown error")
             }
         }
     }
 
-    fun reset() {
-        _searchScreenState.update { SearchState.Initial }
+    fun retryLastSearch() {
+        if (lastSearchQuery.isNotEmpty()) {
+            searchTrack(lastSearchQuery)
+        }
     }
+
+    fun clearSearch() {
+        searchJob?.cancel()
+        lastSearchQuery = ""
+        _searchScreenState.value = SearchState.Initial
+    }
+
+    fun reset() {}
 
     companion object {
         fun getViewModelFactory(): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SearchViewModel(
-                        tracksRepository = Creator.getTracksRepository()
-                    ) as T
+                    val repository = Creator.getTracksRepository()
+                    return SearchViewModel(repository) as T
                 }
             }
         }

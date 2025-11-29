@@ -1,5 +1,6 @@
 package com.example.playlistmaker.ui.main
 
+import SearchViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,7 +16,6 @@ import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.track.TrackDetailsScreen
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
-import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
@@ -40,7 +40,6 @@ fun PlaylistHost(navController: NavHostController) {
             SearchScreen(
                 viewModel = searchViewModel,
                 onBackClick = { navigateToMain(navController) },
-                modifier = Modifier,
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) }
             )
         }
@@ -63,7 +62,6 @@ fun PlaylistHost(navController: NavHostController) {
         }
 
         composable(AppScreen.FAVOURITE.name) {
-            val playlistViewModel: PlaylistViewModel = viewModel()
             FavouriteScreen(
                 onBackClick = { navigateToMain(navController) },
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },

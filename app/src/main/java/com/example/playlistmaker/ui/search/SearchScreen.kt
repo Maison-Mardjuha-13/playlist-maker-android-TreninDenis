@@ -1,8 +1,11 @@
 package com.example.playlistmaker.ui.search
 
+import SearchViewModel
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,127 +29,155 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
+import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.ui.viewmodel.SearchState
-import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 
 @Composable
 fun SearchScreen(
-    modifier: Modifier,
     viewModel: SearchViewModel,
     onBackClick: () -> Unit,
     onTrackClick: (Long) -> Unit
 ) {
-    val xs = dimensionResource(R.dimen.xs)
-    val medium_size = dimensionResource(com.example.playlistmaker.R.dimen.medium)
-    val large_size = dimensionResource(com.example.playlistmaker.R.dimen.large)
-    val exlarge_size = dimensionResource(com.example.playlistmaker.R.dimen.exlarge)
-    val largetext_size = dimensionResource(com.example.playlistmaker.R.dimen.largetext)
-    val s_title = stringResource(R.string.search_name)
-    val err = stringResource(R.string.err_text)
-    val ent = stringResource(R.string.enter_string)
-
-
     val screenState by viewModel.searchScreenState.collectAsState()
-    var text by remember { mutableStateOf("") }
+    var searchText by remember { mutableStateOf("") }
 
-    LaunchedEffect(text) {
-        if (text.isNotEmpty()) {
-            viewModel.searchTrack(text)
+    LaunchedEffect(searchText) {
+        if (searchText.isNotEmpty()) {
+            viewModel.searchTrack(searchText)
+        } else {
+            viewModel.clearSearch()
         }
-        viewModel.reset()
     }
 
     Column(
         modifier = Modifier
-            .padding(top = medium_size, start = medium_size, end = medium_size)
-            .fillMaxWidth()
-            .statusBarsPadding(),
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = large_size),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
+                contentDescription = "Back",
                 modifier = Modifier
-                    .size(exlarge_size)
-                    .clickable {
-                        onBackClick()
-                    },
-                tint = Color.Black
+                    .size(32.dp)
+                    .clickable { onBackClick() }
             )
-            Spacer(modifier = Modifier.width(medium_size))
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = s_title,
-                fontSize = largetext_size.value.sp,
+                text = "Search",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         OutlinedTextField(
-            value = text,
-            onValueChange = {
-                text = it
-            },
-            placeholder = {Text(s_title)},
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = { Text("Enter search query") },
             leadingIcon = {
-                Icon(
-                    modifier = Modifier.clickable {
-                        viewModel.searchTrack(text)
-                    },
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = null
-                )
+                Icon(Icons.Filled.Search, contentDescription = "Search")
             },
             trailingIcon = {
-                if (text.isNotEmpty()){
+                if (searchText.isNotEmpty()) {
                     Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = null,
-                        modifier = Modifier.clickable {text = ""}
+                        Icons.Default.Clear,
+                        "Clear",
+                        modifier = Modifier.clickable { searchText = "" }
                     )
                 }
-
             },
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         when (screenState) {
-            is SearchState.Initial -> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(ent)
-                }
+            SearchState.Initial -> {
+                InitialState()
             }
-
-            is SearchState.Searching -> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+            SearchState.Searching -> {
+                SearchingState()
             }
-
             is SearchState.Success -> {
                 val tracks = (screenState as SearchState.Success).foundList
-                LazyColumn(
-                    modifier = modifier.fillMaxSize()
-                ) {
-                    items(tracks.size) { index ->
-                        TrackListItem(
-                            track = tracks[index],
-                            onClick = { onTrackClick(tracks[index].id) }
-                        )
-                    }
-                }
+                SuccessState(tracks, onTrackClick)
             }
-
             is SearchState.Fail -> {
                 val error = (screenState as SearchState.Fail).error
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("$err $error", color = Color.Red)
-                }
+                FailState(error, viewModel)
             }
+        }
+    }
+}
+
+@Composable
+private fun InitialState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Enter search query")
+    }
+}
+
+@Composable
+private fun SearchingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun SuccessState(tracks: List<Track>, onTrackClick: (Long) -> Unit) {
+    if (tracks.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No results found")
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(tracks) { track ->
+                TrackListItem(
+                    track = track,
+                    onClick = { onTrackClick(track.id) }
+                )
+                HorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
+private fun FailState(error: String, viewModel: SearchViewModel) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Error: $error", color = Color.Red)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Retry",
+                color = Color.Blue,
+                modifier = Modifier.clickable {
+                    viewModel.retryLastSearch()
+                }
+            )
         }
     }
 }
