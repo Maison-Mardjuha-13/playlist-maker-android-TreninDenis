@@ -2,6 +2,7 @@ package com.example.playlistmaker.ui.search
 
 import SearchViewModel
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,7 @@ fun SearchScreen(
 ) {
     val screenState by viewModel.searchScreenState.collectAsState()
     var searchText by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(searchText) {
         if (searchText.isNotEmpty()) {
@@ -90,7 +94,10 @@ fun SearchScreen(
                     Icon(
                         Icons.Default.Clear,
                         "Clear",
-                        modifier = Modifier.clickable { searchText = "" }
+                        modifier = Modifier.clickable {
+                            searchText = ""
+                            keyboardController?.hide()
+                        }
                     )
                 }
             },
@@ -108,11 +115,17 @@ fun SearchScreen(
             }
             is SearchState.Success -> {
                 val tracks = (screenState as SearchState.Success).foundList
-                SuccessState(tracks, onTrackClick)
+                if (tracks.isEmpty()) {
+                    EmptyResultsState()
+                } else {
+                    SuccessState(tracks, onTrackClick)
+                }
             }
             is SearchState.Fail -> {
-                val error = (screenState as SearchState.Fail).error
-                FailState(error, viewModel)
+                ErrorState(
+                    error = (screenState as SearchState.Fail).error,
+                    onRetry = { viewModel.retryLastSearch() }
+                )
             }
         }
     }
@@ -139,29 +152,7 @@ private fun SearchingState() {
 }
 
 @Composable
-private fun SuccessState(tracks: List<Track>, onTrackClick: (Long) -> Unit) {
-    if (tracks.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("No results found")
-        }
-    } else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(tracks) { track ->
-                TrackListItem(
-                    track = track,
-                    onClick = { onTrackClick(track.id) }
-                )
-                HorizontalDivider()
-            }
-        }
-    }
-}
-
-@Composable
-private fun FailState(error: String, viewModel: SearchViewModel) {
+private fun EmptyResultsState() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -169,15 +160,77 @@ private fun FailState(error: String, viewModel: SearchViewModel) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Error: $error", color = Color.Red)
+            Image(
+                painter = painterResource(R.drawable.ic_search_emply),
+                contentDescription = "No results",
+                modifier = Modifier.size(120.dp)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Retry",
-                color = Color.Blue,
-                modifier = Modifier.clickable {
-                    viewModel.retryLastSearch()
-                }
+                text = "Nothing found",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Try changing your search query",
+                fontSize = 14.sp,
+                color = Color.Gray
             )
         }
     }
 }
+
+@Composable
+private fun ErrorState(
+    error: String,
+    onRetry: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_error),
+                contentDescription = "Error",
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Server error",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Check your internet connection and try again",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Retry",
+                color = Color.Blue,
+                fontSize = 16.sp,
+                modifier = Modifier.clickable(onClick = onRetry)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SuccessState(tracks: List<Track>, onTrackClick: (Long) -> Unit) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(tracks) { track ->
+            TrackListItem(
+                track = track,
+                onClick = { onTrackClick(track.id) }
+            )
+            HorizontalDivider()
+        }
+    }
+}
+

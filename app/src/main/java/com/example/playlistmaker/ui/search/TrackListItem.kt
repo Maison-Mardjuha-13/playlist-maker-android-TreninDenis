@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Track
@@ -36,15 +37,26 @@ fun TrackListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_music),
-            contentDescription = "Track",
-            modifier = Modifier.size(40.dp)
-        )
+        if (track.artworkUrl100 != null) {
+            AsyncImage(
+                model = track.artworkUrl100,
+                contentDescription = "Track artwork",
+                modifier = Modifier.size(40.dp),
+                placeholder = painterResource(R.drawable.ic_music),
+                error = painterResource(R.drawable.ic_music)
+            )
+        } else {
+            Image(
+                painter = painterResource(R.drawable.ic_music),
+                contentDescription = "Track artwork",
+                modifier = Modifier.size(40.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
