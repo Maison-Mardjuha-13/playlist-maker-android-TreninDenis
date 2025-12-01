@@ -36,45 +36,58 @@ class DatabaseMock(
                     id = 1,
                     trackName = "Bohemian Rhapsody",
                     artistName = "Queen",
-                    trackTime = "5:55",
-                    favorite = false,
-                    playlistId = 0
+                    collectionName = "Greatest Hits",
+                    trackTimeMillis = 355000,
+                    artworkUrl100 = null,
+                    previewUrl = null,
+                    isFavorite = false,
+                    playlistId = null
                 ),
                 Track(
                     id = 2,
                     trackName = "Hotel California",
                     artistName = "Eagles",
-                    trackTime = "6:30",
-                    favorite = true,
-                    playlistId = 0
+                    collectionName = "Hotel California",
+                    trackTimeMillis = 390000,
+                    artworkUrl100 = null,
+                    previewUrl = null,
+                    isFavorite = true,
+                    playlistId = null
                 ),
                 Track(
                     id = 3,
                     trackName = "Sweet Child O' Mine",
                     artistName = "Guns N' Roses",
-                    trackTime = "5:03",
-                    favorite = false,
-                    playlistId = 0
+                    collectionName = "Appetite for Destruction",
+                    trackTimeMillis = 303000,
+                    artworkUrl100 = null,
+                    previewUrl = null,
+                    isFavorite = false,
+                    playlistId = null
                 ),
                 Track(
                     id = 4,
                     trackName = "Smells Like Teen Spirit",
                     artistName = "Nirvana",
-                    trackTime = "5:01",
-                    favorite = true,
-                    playlistId = 0
+                    collectionName = "Nevermind",
+                    trackTimeMillis = 301000,
+                    artworkUrl100 = null,
+                    previewUrl = null,
+                    playlistId = null
                 ),
                 Track(
                     id = 5,
                     trackName = "Imagine",
                     artistName = "John Lennon",
-                    trackTime = "3:07",
-                    favorite = false,
-                    playlistId = 0
+                    collectionName = "Imagine",
+                    trackTimeMillis = 187000,
+                    artworkUrl100 = null,
+                    previewUrl = null,
+                    isFavorite = false,
+                    playlistId = null
                 )
             )
         )
-        println("DatabaseMock: Added ${tracks.size} test tracks")
     }
 
     private fun updatePlaylistsFlow() {
@@ -85,8 +98,19 @@ class DatabaseMock(
             }
             filteredPlaylists.add(playlist.copy(tracks = playlistTracks))
         }
+        println("DatabaseMock: Updating playlists flow with ${filteredPlaylists.size} playlists")
+        println("DatabaseMock: Original playlists count: ${playlists.size}")
+        println("DatabaseMock: Tracks count: ${tracks.size}")
         _playlistsFlow.value = filteredPlaylists
-        println("DatabaseMock: Updated playlists flow with ${filteredPlaylists.size} playlists")
+    }
+
+    fun debugPlaylists() {
+        println("=== DATABASE DEBUG ===")
+        println("Playlists count: ${playlists.size}")
+        playlists.forEach { println("  - ${it.id}: ${it.name}") }
+        println("Tracks count: ${tracks.size}")
+        tracks.forEach { println("  - ${it.id}: ${it.trackName} (playlist: ${it.playlistId})") }
+        println("======================")
     }
 
     fun getHistory(): List<String> {
@@ -120,42 +144,58 @@ class DatabaseMock(
                 tracks = emptyList()
             )
         )
-        println("DatabaseMock: Added playlist '$name' with id $newId. Total playlists: ${playlists.size}")
+        println("DatabaseMock: Added playlist $newId - $name")
+        println("DatabaseMock: Total playlists after add: ${playlists.size}")
         updatePlaylistsFlow()
     }
-
-    fun deletePlaylistById(playlistId: Long) {
-        playlists.removeIf { it.id == playlistId }
-        updatePlaylistsFlow()
-    }
+    //fun deletePlaylistById(playlistId: Long) {
+    //    playlists.removeIf { it.id == playlistId }
+    //    updatePlaylistsFlow()
+    //}
 
     fun deleteTrackFromPlaylist(trackId: Long) {
-        tracks.removeIf { it.id == trackId }
+        val track = tracks.find { it.id == trackId }
+        track?.let {
+            tracks.remove(it)
+            tracks.add(it.copy(playlistId = null))
+        }
     }
 
     fun getTrackByNameAndArtist(track: Track): Flow<Track?> = flow {
-        emit(tracks.find { it.trackName == track.trackName && it.artistName == track.artistName })
+        emit(tracks.find {
+            it.trackName == track.trackName && it.artistName == track.artistName
+        })
     }
 
     fun insertTrack(track: Track) {
-        tracks.removeIf { it.id == track.id }
-        tracks.add(track)
+        val existingTrackIndex = tracks.indexOfFirst {
+            it.trackName == track.trackName && it.artistName == track.artistName
+        }
+
+        if (existingTrackIndex != -1) {
+            tracks[existingTrackIndex] = track
+        } else {
+            tracks.add(track)
+        }
+
         updateFavoritesFlow()
+        updatePlaylistsFlow()
     }
 
     private fun updateFavoritesFlow() {
-        val favorites = tracks.filter { it.favorite }
+        val favorites = tracks.filter { it.isFavorite }
         _favoritesFlow.value = favorites
     }
 
     fun getFavoriteTracks(): Flow<List<Track>> = flow {
         delay(300) // Имитируем задержку
-        val favorites = tracks.filter { it.favorite }
+        val favorites = tracks.filter { it.isFavorite }
         emit(favorites)
     }
 
     fun deleteTracksByPlaylistId(playlistId: Long) {
         tracks.removeIf { it.playlistId == playlistId }
+        updatePlaylistsFlow()
     }
 
     fun searchTracks(expression: String): List<Track> {
@@ -169,5 +209,11 @@ class DatabaseMock(
 
     fun getTrackById(trackId: Long): Track? {
         return tracks.find { it.id == trackId }
+    }
+
+    fun deleteTrack(track: Track) {
+        tracks.removeIf { it.id == track.id }
+        updateFavoritesFlow()
+        updatePlaylistsFlow()
     }
 }

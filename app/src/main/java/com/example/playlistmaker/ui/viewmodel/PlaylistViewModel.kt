@@ -31,14 +31,23 @@ class PlaylistViewModel : ViewModel() {
 
 
     init {
+        println("PlaylistViewModel: Initializing and loading playlists")
         loadPlaylists()
     }
 
     fun loadPlaylists() {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.getAllPlaylists().collect { playlistsList ->
-                println("ViewModel: Received ${playlistsList.size} playlists from repository")
-                _playlists.value = playlistsList
+            try {
+                playlistsRepository.getAllPlaylists().collect { playlistsList ->
+                    println("ViewModel: Received ${playlistsList.size} playlists from repository")
+                    _playlists.value = playlistsList
+
+                    (playlistsRepository as? PlaylistsRepositoryImpl)?.let { repo ->
+                        repo.debugDatabase()
+                    }
+                }
+            } catch (e: Exception) {
+                println("PlaylistViewModel: Error loading playlists: ${e.message}")
             }
         }
     }
@@ -62,10 +71,10 @@ class PlaylistViewModel : ViewModel() {
         tracksRepository.deleteTrackFromPlaylist(track)
     }
 
-    suspend fun deletePlaylistById(id: Long) {
-        tracksRepository.deleteTracksByPlaylistId(id)
-        playlistsRepository.deletePlaylistById(id)
-    }
+    //suspend fun deletePlaylistById(id: Long) {
+    //    tracksRepository.deleteTracksByPlaylistId(id)
+    //    playlistsRepository.deletePlaylistById(id)
+    //}
 
     suspend fun isExist(track: Track): Track? {
         return tracksRepository.getTrackByNameAndArtist(track).firstOrNull()

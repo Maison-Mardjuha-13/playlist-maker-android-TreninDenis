@@ -11,19 +11,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.playlistmaker.ui.theme.PlaylistmakerTheme
-import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 class MainActivity : ComponentActivity() {
-    private val searchViewModel by viewModels<SearchViewModel>{
-        SearchViewModel.getViewModelFactory()
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PlaylistmakerTheme {
-                val navController = rememberNavController()
-                PlaylistHost(navController = navController)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    PlaylistHost(navController = navController)
+                }
             }
         }
     }

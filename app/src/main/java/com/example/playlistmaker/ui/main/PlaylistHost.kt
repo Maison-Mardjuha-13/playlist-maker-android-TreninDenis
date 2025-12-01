@@ -1,5 +1,6 @@
 package com.example.playlistmaker.ui.main
 
+import SearchViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -10,12 +11,12 @@ import androidx.navigation.compose.composable
 import com.example.playlistmaker.domain.models.AppScreen
 import com.example.playlistmaker.ui.favourite.FavouriteScreen
 import com.example.playlistmaker.ui.playlist.NewPlaylistScreen
+import com.example.playlistmaker.ui.playlist.PlaylistDetailsScreen
 import com.example.playlistmaker.ui.playlist.PlaylistsScreen
 import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.track.TrackDetailsScreen
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
-import com.example.playlistmaker.ui.viewmodel.SearchViewModel
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
@@ -40,7 +41,6 @@ fun PlaylistHost(navController: NavHostController) {
             SearchScreen(
                 viewModel = searchViewModel,
                 onBackClick = { navigateToMain(navController) },
-                modifier = Modifier,
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) }
             )
         }
@@ -56,14 +56,13 @@ fun PlaylistHost(navController: NavHostController) {
                 modifier = Modifier,
                 playlistViewModel = playlistViewModel,
                 addNewPlaylist = { navigateToNewPlaylist(navController) },
-                navigateToPlaylist = { playlistId -> },
+                navigateToPlaylist = { playlistId -> navigateToPlaylistDetails(navController, playlistId) },
                 navigateBack = { navController.popBackStack()},
                 navController = navController
             )
         }
 
         composable(AppScreen.FAVOURITE.name) {
-            val playlistViewModel: PlaylistViewModel = viewModel()
             FavouriteScreen(
                 onBackClick = { navigateToMain(navController) },
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
@@ -87,7 +86,21 @@ fun PlaylistHost(navController: NavHostController) {
                 onBackClick = { navController.popBackStack() }
             )
         }
+
+        composable("${AppScreen.PLAYLIST_DETAILS.name}/{playlistId}") { backStackEntry ->
+            val playlistId = backStackEntry.arguments?.getString("playlistId")?.toLongOrNull() ?: 0L
+            PlaylistDetailsScreen(
+                playlistId = playlistId,
+                onBackClick = { navController.popBackStack() },
+                onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
+                playlistViewModel = playlistViewModel
+            )
+        }
     }
+}
+
+private fun navigateToPlaylistDetails(navController: NavController, playlistId: Long) {
+    navController.navigate("${AppScreen.PLAYLIST_DETAILS.name}/$playlistId")
 }
 
 private fun navigateToMain(navController: NavController) {

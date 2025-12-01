@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -33,25 +32,12 @@ fun TrackDetailsScreen(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(trackId) {
-        coroutineScope.launch {
-            try {
-                track = playlistViewModel.getTrackById(trackId)
-            } catch (e: Exception) {
-                println("Error loading track: ${e.message}")
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    val favoriteTracks by playlistViewModel.favoriteList.collectAsState(emptyList())
-
-    LaunchedEffect(favoriteTracks) {
-        track?.let { currentTrack ->
-            val updatedFavorite = favoriteTracks.any { it.id == currentTrack.id }
-            if (currentTrack.favorite != updatedFavorite) {
-                track = currentTrack.copy(favorite = updatedFavorite)
-            }
+        try {
+            track = playlistViewModel.getTrackById(trackId)
+        } catch (e: Exception) {
+            track = null
+        } finally {
+            isLoading = false
         }
     }
 
@@ -70,10 +56,10 @@ fun TrackDetailsScreen(
                     .size(32.dp)
                     .clickable { onBackClick() },
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null
+                contentDescription = "Back"
             )
             Text(
-                text = "Детали трека",
+                text = "Track Details",
                 fontSize = 24.sp,
                 modifier = Modifier.padding(start = 16.dp)
             )
@@ -93,22 +79,14 @@ fun TrackDetailsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Трек не найден", color = Color.Red)
+                Text("Track not found", color = Color.Red)
             }
         } else {
-            // Отображаем реальные данные трека
             val currentTrack = track!!
             Column {
-                Text("Название: ${currentTrack.trackName}", fontSize = 18.sp)
-                Text("Исполнитель: ${currentTrack.artistName}", fontSize = 16.sp)
-                Text("Время: ${currentTrack.trackTime}", fontSize = 16.sp)
-
-                // Отображаем статус избранного
-                Text(
-                    text = "В избранном: ${if (currentTrack.favorite) "Да" else "Нет"}",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text("Title: ${currentTrack.trackName}", fontSize = 18.sp)
+                Text("Artist: ${currentTrack.artistName}", fontSize = 16.sp)
+                Text("Duration: ${currentTrack.getFormattedTrackTime()}", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -121,18 +99,17 @@ fun TrackDetailsScreen(
                     modifier = Modifier
                         .size(48.dp)
                         .clickable {
-                            // Добавить/удалить из избранного
                             coroutineScope.launch {
                                 track?.let {
-                                    playlistViewModel.toggleFavorite(it, !it.favorite)
-                                    // Обновляем локальное состояние
-                                    track = it.copy(favorite = !it.favorite)
+                                    val newFavoriteStatus = !currentTrack.isFavorite
+                                    playlistViewModel.toggleFavorite(currentTrack, newFavoriteStatus)
+                                    track = currentTrack.copy(isFavorite = newFavoriteStatus)
                                 }
                             }
                         },
                     imageVector = Icons.Filled.Favorite,
-                    contentDescription = "В избранное",
-                    tint = if (track?.favorite == true) Color.Red else Color.Gray
+                    contentDescription = "Favorite",
+                    tint = if (track?.isFavorite == true) Color.Red else Color.Gray
                 )
                 Icon(
                     modifier = Modifier
@@ -141,7 +118,7 @@ fun TrackDetailsScreen(
                             showPlaylistSheet = true
                         },
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "В плейлист",
+                    contentDescription = "Add to playlist",
                     tint = Color.Blue
                 )
             }
@@ -151,7 +128,6 @@ fun TrackDetailsScreen(
             PlaylistSelectionSheet(
                 onDismiss = { showPlaylistSheet = false },
                 onPlaylistSelected = { playlistId ->
-                    // Добавить трек в плейлист
                     coroutineScope.launch {
                         track?.let {
                             playlistViewModel.insertTrackToPlaylist(it, playlistId)
@@ -176,6 +152,6 @@ fun PlaylistSelectionSheet(
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("Выбор плейлиста (реализуется позже)")
+        Text("Playlist selection")
     }
 }

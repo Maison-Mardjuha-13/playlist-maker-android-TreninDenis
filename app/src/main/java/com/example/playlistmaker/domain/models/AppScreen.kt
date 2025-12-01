@@ -7,5 +7,6 @@ enum class AppScreen {
     FAVOURITE,
     SETTINGS,
     NEW_PLAYLIST,
-    TRACK_DETAILS
+    TRACK_DETAILS,
+    PLAYLIST_DETAILS
 }

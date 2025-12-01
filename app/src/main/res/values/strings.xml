@@ -18,4 +18,5 @@
     <string name="err_text">Ошибка: </string>
     <string name="enter_string">"Введите строку для поиска"</string>
     <string name="choose_email">"Выберите почтовый клиент"</string>
+    <string name="nothing_found">Ничего не найдено</string>
 </resources>
