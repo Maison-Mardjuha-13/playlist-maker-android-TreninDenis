@@ -98,7 +98,19 @@ class DatabaseMock(
             }
             filteredPlaylists.add(playlist.copy(tracks = playlistTracks))
         }
+        println("DatabaseMock: Updating playlists flow with ${filteredPlaylists.size} playlists")
+        println("DatabaseMock: Original playlists count: ${playlists.size}")
+        println("DatabaseMock: Tracks count: ${tracks.size}")
         _playlistsFlow.value = filteredPlaylists
+    }
+
+    fun debugPlaylists() {
+        println("=== DATABASE DEBUG ===")
+        println("Playlists count: ${playlists.size}")
+        playlists.forEach { println("  - ${it.id}: ${it.name}") }
+        println("Tracks count: ${tracks.size}")
+        tracks.forEach { println("  - ${it.id}: ${it.trackName} (playlist: ${it.playlistId})") }
+        println("======================")
     }
 
     fun getHistory(): List<String> {
@@ -132,13 +144,14 @@ class DatabaseMock(
                 tracks = emptyList()
             )
         )
+        println("DatabaseMock: Added playlist $newId - $name")
+        println("DatabaseMock: Total playlists after add: ${playlists.size}")
         updatePlaylistsFlow()
     }
-
-    fun deletePlaylistById(playlistId: Long) {
-        playlists.removeIf { it.id == playlistId }
-        updatePlaylistsFlow()
-    }
+    //fun deletePlaylistById(playlistId: Long) {
+    //    playlists.removeIf { it.id == playlistId }
+    //    updatePlaylistsFlow()
+    //}
 
     fun deleteTrackFromPlaylist(trackId: Long) {
         val track = tracks.find { it.id == trackId }
@@ -149,12 +162,22 @@ class DatabaseMock(
     }
 
     fun getTrackByNameAndArtist(track: Track): Flow<Track?> = flow {
-        emit(tracks.find { it.trackName == track.trackName && it.artistName == track.artistName })
+        emit(tracks.find {
+            it.trackName == track.trackName && it.artistName == track.artistName
+        })
     }
 
     fun insertTrack(track: Track) {
-        tracks.removeIf { it.id == track.id }
-        tracks.add(track)
+        val existingTrackIndex = tracks.indexOfFirst {
+            it.trackName == track.trackName && it.artistName == track.artistName
+        }
+
+        if (existingTrackIndex != -1) {
+            tracks[existingTrackIndex] = track
+        } else {
+            tracks.add(track)
+        }
+
         updateFavoritesFlow()
         updatePlaylistsFlow()
     }

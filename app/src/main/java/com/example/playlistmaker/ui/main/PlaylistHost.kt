@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import com.example.playlistmaker.domain.models.AppScreen
 import com.example.playlistmaker.ui.favourite.FavouriteScreen
 import com.example.playlistmaker.ui.playlist.NewPlaylistScreen
+import com.example.playlistmaker.ui.playlist.PlaylistDetailsScreen
 import com.example.playlistmaker.ui.playlist.PlaylistsScreen
 import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
@@ -55,7 +56,7 @@ fun PlaylistHost(navController: NavHostController) {
                 modifier = Modifier,
                 playlistViewModel = playlistViewModel,
                 addNewPlaylist = { navigateToNewPlaylist(navController) },
-                navigateToPlaylist = { playlistId -> },
+                navigateToPlaylist = { playlistId -> navigateToPlaylistDetails(navController, playlistId) },
                 navigateBack = { navController.popBackStack()},
                 navController = navController
             )
@@ -85,7 +86,21 @@ fun PlaylistHost(navController: NavHostController) {
                 onBackClick = { navController.popBackStack() }
             )
         }
+
+        composable("${AppScreen.PLAYLIST_DETAILS.name}/{playlistId}") { backStackEntry ->
+            val playlistId = backStackEntry.arguments?.getString("playlistId")?.toLongOrNull() ?: 0L
+            PlaylistDetailsScreen(
+                playlistId = playlistId,
+                onBackClick = { navController.popBackStack() },
+                onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
+                playlistViewModel = playlistViewModel
+            )
+        }
     }
+}
+
+private fun navigateToPlaylistDetails(navController: NavController, playlistId: Long) {
+    navController.navigate("${AppScreen.PLAYLIST_DETAILS.name}/$playlistId")
 }
 
 private fun navigateToMain(navController: NavController) {

@@ -1,5 +1,6 @@
 package com.example.playlistmaker.domain.impl
 
+import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.creator.DatabaseMock
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.models.Playlist
@@ -9,9 +10,7 @@ import kotlinx.coroutines.flow.Flow
 class PlaylistsRepositoryImpl(
     private val scope: CoroutineScope
 ) : PlaylistsRepository {
-    private val database = DatabaseMock(
-        scope = scope,
-    )
+    private val database = Creator.getDatabaseMock()
 
     override fun getPlaylist(playlistId: Long): Flow<Playlist?> {
         return database.getPlaylist(playlistId)
@@ -28,7 +27,11 @@ class PlaylistsRepositoryImpl(
         )
     }
 
-    override suspend fun deletePlaylistById(id: Long) {
-        database.deletePlaylistById(playlistId = id)
+    //override suspend fun deletePlaylistById(id: Long) {
+    //    database.deletePlaylistById(playlistId = id)
+    //}
+
+    suspend fun debugDatabase() {
+        database.debugPlaylists()
     }
 }

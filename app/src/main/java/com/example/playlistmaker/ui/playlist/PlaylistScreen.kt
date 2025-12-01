@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -51,32 +52,24 @@ fun PlaylistsScreen(
     val playlists by playlistViewModel.playlists.collectAsState(emptyList())
 
     LaunchedEffect(Unit) {
-        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Boolean>(
-            "playlist_updated",
-            false
-        )?.collect { updated ->
-            if (updated) {
-                println("PlaylistsScreen: Received update flag, reloading playlists")
-                playlistViewModel.loadPlaylists()
-                navController.currentBackStackEntry?.savedStateHandle?.set("playlist_updated", false)
-            }
-        }
+        println("PlaylistsScreen: Starting to observe playlists")
     }
 
     LaunchedEffect(playlists) {
         println("PlaylistsScreen: Current playlists count: ${playlists.size}")
+        playlists.forEach { playlist ->
+            println("Playlist: ${playlist.id} - ${playlist.name}")
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(top = 8.dp)
+                .padding(16.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -86,35 +79,54 @@ fun PlaylistsScreen(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null
                 )
-                Text("Плейлисты", fontSize = 32.sp)
+                Text("Плейлисты", fontSize = 32.sp, modifier = Modifier.padding(start = 16.dp))
             }
 
-            LazyColumn(modifier = modifier.fillMaxSize()) {
-                items(playlists.size) { index ->
-                    PlaylistContent(playlist = playlists[index]) {
-                        navigateToPlaylist(playlists[index].id)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (playlists.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No playlists yet", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(playlists.size) { index ->
+                        val playlist = playlists[index]
+                        PlaylistContent(playlist = playlist) {
+                            println("PlaylistsScreen: Navigating to playlist ${playlist.id} - ${playlist.name}")
+                            navigateToPlaylist(playlist.id)
+                        }
+                        HorizontalDivider(thickness = 0.5.dp)
                     }
-                    HorizontalDivider(thickness = 0.5.dp)
                 }
             }
         }
+
         FloatingActionButton(
+            onClick = {
+                println("PlaylistsScreen: FAB clicked - navigating to new playlist")
+                addNewPlaylist()
+            },
             modifier = Modifier
-                .padding(32.dp)
+                .padding(16.dp)
                 .align(Alignment.BottomEnd),
-            onClick = { println("PlaylistsScreen: FAB clicked - navigating to new playlist")
-                addNewPlaylist() },
-            containerColor = Color.Gray,
-            contentColor = Color.White,
-            shape = CircleShape
+            containerColor = Color.Gray
         ) {
             Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = null
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add playlist"
             )
         }
     }
 }
+
+
+
 
 
 @Composable

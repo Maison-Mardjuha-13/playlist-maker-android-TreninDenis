@@ -1,7 +1,9 @@
 package com.example.playlistmaker.creator
 
 
+import com.example.playlistmaker.data.network.ITunesApi
 import com.example.playlistmaker.data.network.NetworkModule
+import com.example.playlistmaker.data.network.RetrofitNetworkClient
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.impl.PlaylistsRepositoryImpl
@@ -11,10 +13,11 @@ import kotlinx.coroutines.Dispatchers
 
 object Creator {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val databaseMock = DatabaseMock(scope)
+    private var databaseMock: DatabaseMock? = null
     private val iTunesApi = NetworkModule.provideITunesApi()
 
     fun getTracksRepository(): TracksRepository {
+        val iTunesApi = NetworkModule.provideITunesApi()
         return TracksRepositoryImpl(scope, iTunesApi)
     }
 
@@ -23,6 +26,9 @@ object Creator {
     }
 
     fun getDatabaseMock(): DatabaseMock {
-        return databaseMock
+        return databaseMock ?: DatabaseMock(scope).also {
+            databaseMock = it
+            println("Creator: Created new DatabaseMock instance")
+        }
     }
 }

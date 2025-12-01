@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -102,7 +101,9 @@ fun TrackDetailsScreen(
                         .clickable {
                             coroutineScope.launch {
                                 track?.let {
-                                    playlistViewModel.toggleFavorite(it, !it.isFavorite)
+                                    val newFavoriteStatus = !currentTrack.isFavorite
+                                    playlistViewModel.toggleFavorite(currentTrack, newFavoriteStatus)
+                                    track = currentTrack.copy(isFavorite = newFavoriteStatus)
                                 }
                             }
                         },
