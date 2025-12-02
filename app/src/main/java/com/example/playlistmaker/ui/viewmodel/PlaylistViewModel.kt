@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.creator.Creator
-import com.example.playlistmaker.creator.DatabaseMock
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.impl.PlaylistsRepositoryImpl
@@ -23,11 +22,10 @@ class PlaylistViewModel : ViewModel() {
     private val playlistsRepository: PlaylistsRepository = Creator.getPlaylistsRepository()
     private val tracksRepository: TracksRepository = Creator.getTracksRepository()
 
-
     val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
-    val playlists: Flow<List<Playlist>> = _playlists.asStateFlow()
+    val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
 
 
     init {
@@ -41,10 +39,6 @@ class PlaylistViewModel : ViewModel() {
                 playlistsRepository.getAllPlaylists().collect { playlistsList ->
                     println("ViewModel: Received ${playlistsList.size} playlists from repository")
                     _playlists.value = playlistsList
-
-                    (playlistsRepository as? PlaylistsRepositoryImpl)?.let { repo ->
-                        repo.debugDatabase()
-                    }
                 }
             } catch (e: Exception) {
                 println("PlaylistViewModel: Error loading playlists: ${e.message}")
@@ -59,6 +53,10 @@ class PlaylistViewModel : ViewModel() {
         }
     }
 
+    fun getPlaylistTracks(playlistId: Long): Flow<List<Track>> {
+        return tracksRepository.getTracksByPlaylistId(playlistId)
+    }
+
     suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
         tracksRepository.insertTrackToPlaylist(track, playlistId)
     }
@@ -71,10 +69,10 @@ class PlaylistViewModel : ViewModel() {
         tracksRepository.deleteTrackFromPlaylist(track)
     }
 
-    //suspend fun deletePlaylistById(id: Long) {
-    //    tracksRepository.deleteTracksByPlaylistId(id)
-    //    playlistsRepository.deletePlaylistById(id)
-    //}
+    suspend fun deletePlaylistById(id: Long) {
+        tracksRepository.deleteTracksByPlaylistId(id)
+        playlistsRepository.deletePlaylistById(id)
+    }
 
     suspend fun isExist(track: Track): Track? {
         return tracksRepository.getTrackByNameAndArtist(track).firstOrNull()
