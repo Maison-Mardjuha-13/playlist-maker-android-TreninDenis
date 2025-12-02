@@ -13,4 +13,5 @@ interface TracksRepository {
     fun getFavoriteTracks(): Flow<List<Track>>
 
     suspend fun getTrackById(trackId: Long): Track?
+
 }

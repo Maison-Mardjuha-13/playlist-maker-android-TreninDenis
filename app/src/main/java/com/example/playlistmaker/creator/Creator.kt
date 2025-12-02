@@ -1,6 +1,9 @@
 package com.example.playlistmaker.creator
 
 
+import android.content.Context
+import androidx.room.Room
+import com.example.playlistmaker.data.database.AppDatabase
 import com.example.playlistmaker.data.network.ITunesApi
 import com.example.playlistmaker.data.network.NetworkModule
 import com.example.playlistmaker.data.network.RetrofitNetworkClient
@@ -13,22 +16,31 @@ import kotlinx.coroutines.Dispatchers
 
 object Creator {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private var databaseMock: DatabaseMock? = null
-    private val iTunesApi = NetworkModule.provideITunesApi()
+    private var database: AppDatabase? = null
+
+    fun initDatabase(context: Context) {
+        database = Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "playlist_maker.db"
+        ).build()
+    }
+
+    private fun getDatabase(): AppDatabase {
+        return database ?: throw IllegalStateException("Database not initialized. Call initDatabase first.")
+    }
 
     fun getTracksRepository(): TracksRepository {
-        val iTunesApi = NetworkModule.provideITunesApi()
-        return TracksRepositoryImpl(scope, iTunesApi)
+        val retrofit = RetrofitNetworkClient().getRetrofit()
+        val iTunesApi = retrofit.create(ITunesApi::class.java)
+        return TracksRepositoryImpl(scope, iTunesApi, getDatabase().tracksDao())
     }
 
     fun getPlaylistsRepository(): PlaylistsRepository {
-        return PlaylistsRepositoryImpl(scope)
-    }
-
-    fun getDatabaseMock(): DatabaseMock {
-        return databaseMock ?: DatabaseMock(scope).also {
-            databaseMock = it
-            println("Creator: Created new DatabaseMock instance")
-        }
+        return PlaylistsRepositoryImpl(
+            scope,
+            getDatabase().playlistDao(),
+            getDatabase().tracksDao()
+        )
     }
 }

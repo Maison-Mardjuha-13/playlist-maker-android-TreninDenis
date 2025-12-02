@@ -10,12 +10,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.ui.theme.PlaylistmakerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        Creator.initDatabase(applicationContext)
         setContent {
             PlaylistmakerTheme {
                 Surface(

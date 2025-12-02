@@ -30,23 +30,17 @@ fun PlaylistDetailsScreen(
     onTrackClick: (Long) -> Unit,
     playlistViewModel: PlaylistViewModel
 ) {
-    val playlistViewModel: PlaylistViewModel = viewModel()
     var playlist by remember { mutableStateOf<Playlist?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(playlistId) {
         try {
-            println("PlaylistDetailsScreen: Loading playlist $playlistId")
-
-            playlistViewModel.playlists.collectLatest { playlists ->
-                println("PlaylistDetailsScreen: Received ${playlists.size} playlists")
+            playlistViewModel.playlists.collect { playlists ->
                 val foundPlaylist = playlists.find { it.id == playlistId }
-                println("PlaylistDetailsScreen: Looking for playlist $playlistId, found: ${foundPlaylist?.name}")
                 playlist = foundPlaylist
                 isLoading = false
             }
         } catch (e: Exception) {
-            println("PlaylistDetailsScreen: Error loading playlist: ${e.message}")
             isLoading = false
         }
     }
@@ -54,6 +48,7 @@ fun PlaylistDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(16.dp)
     ) {
         Row(
@@ -89,16 +84,11 @@ fun PlaylistDetailsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Playlist not found", color = Color.Red, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("ID: $playlistId", color = Color.Gray, fontSize = 14.sp)
-                }
+                Text("Playlist not found", color = Color.Red)
             }
         } else {
             val currentPlaylist = playlist!!
 
-            // Заголовок плейлиста
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

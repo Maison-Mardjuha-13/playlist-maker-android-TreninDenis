@@ -3,11 +3,30 @@ package com.example.playlistmaker.data.network
 import com.example.playlistmaker.creator.Storage
 import com.example.playlistmaker.data.dto.TrackSearchRequest
 import com.example.playlistmaker.data.dto.TrackSearchResponse
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
-class RetrofitNetworkClient(private val storage: Storage) : NetworkClient {
+class RetrofitNetworkClient {
 
-    override fun doRequest(request: Any): TrackSearchResponse {
-        val searchList = storage.search((request as TrackSearchRequest).expression)
-        return TrackSearchResponse(searchList).apply { resultCode = 200 }
+    fun getRetrofit(): Retrofit {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl("https://itunes.apple.com/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 }
