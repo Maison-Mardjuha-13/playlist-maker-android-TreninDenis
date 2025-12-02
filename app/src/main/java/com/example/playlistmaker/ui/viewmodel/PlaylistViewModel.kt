@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.creator.Creator
-import com.example.playlistmaker.creator.DatabaseMock
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.impl.PlaylistsRepositoryImpl
@@ -26,7 +25,7 @@ class PlaylistViewModel : ViewModel() {
     val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
-    val playlists: Flow<List<Playlist>> = _playlists.asStateFlow()
+    val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
 
 
     init {
@@ -52,6 +51,10 @@ class PlaylistViewModel : ViewModel() {
             playlistsRepository.addNewPlaylist(namePlaylist, description)
             loadPlaylists()
         }
+    }
+
+    fun getPlaylistTracks(playlistId: Long): Flow<List<Track>> {
+        return tracksRepository.getTracksByPlaylistId(playlistId)
     }
 
     suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {

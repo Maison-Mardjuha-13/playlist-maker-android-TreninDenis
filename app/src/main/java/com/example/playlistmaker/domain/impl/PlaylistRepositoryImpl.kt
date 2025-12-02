@@ -1,7 +1,6 @@
 package com.example.playlistmaker.domain.impl
 
 import com.example.playlistmaker.creator.Creator
-import com.example.playlistmaker.creator.DatabaseMock
 import com.example.playlistmaker.data.database.dao.PlaylistDao
 import com.example.playlistmaker.data.database.dao.TracksDao
 import com.example.playlistmaker.data.database.entity.PlaylistEntity
@@ -22,8 +21,11 @@ class PlaylistsRepositoryImpl(
 
     override fun getPlaylist(playlistId: Long): Flow<Playlist?> {
         return playlistDao.getPlaylistById(playlistId)
-            .combine(tracksDao.getTracksByPlaylistId(playlistId)) { playlistEntity, trackEntities ->
-                playlistEntity?.toPlaylist(trackEntities.map { it.toTrack() })
+            .map { playlistEntity ->
+                playlistEntity?.let {
+                    val tracks = tracksDao.getTracksForPlaylist(playlistId)
+                    it.toPlaylist(tracks.map { trackEntity -> trackEntity.toTrack() })
+                }
             }
     }
 
@@ -31,7 +33,8 @@ class PlaylistsRepositoryImpl(
         return playlistDao.getAllPlaylists()
             .map { playlistEntities ->
                 playlistEntities.map { playlistEntity ->
-                    playlistEntity.toPlaylist()
+                    val tracks = tracksDao.getTracksForPlaylist(playlistEntity.id)
+                    playlistEntity.toPlaylist(tracks.map { trackEntity -> trackEntity.toTrack() })
                 }
             }
     }

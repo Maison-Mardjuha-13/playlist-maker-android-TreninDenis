@@ -1,17 +1,11 @@
 package com.example.playlistmaker.domain.impl
 
-import com.example.playlistmaker.creator.Creator
-import com.example.playlistmaker.creator.DatabaseMock
 import com.example.playlistmaker.data.database.dao.TracksDao
 import com.example.playlistmaker.data.database.toEntity
 import com.example.playlistmaker.data.database.toTrack
-import com.example.playlistmaker.data.dto.TrackSearchRequest
-import com.example.playlistmaker.data.dto.TrackSearchResponse
-import com.example.playlistmaker.data.network.NetworkClient
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.models.Track
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import com.example.playlistmaker.data.network.ITunesApi
 import kotlinx.coroutines.flow.map
@@ -75,5 +69,10 @@ class TracksRepositoryImpl(
 
     override suspend fun getTrackById(trackId: Long): Track? {
         return tracksDao.getTrackById(trackId)?.toTrack()
+    }
+
+    override fun getTracksByPlaylistId(playlistId: Long): Flow<List<Track>> {
+        return tracksDao.getTracksByPlaylistId(playlistId)
+            .map { entities -> entities.map { it.toTrack() } }
     }
 }

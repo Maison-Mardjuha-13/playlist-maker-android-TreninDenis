@@ -32,17 +32,22 @@ fun PlaylistDetailsScreen(
 ) {
     var playlist by remember { mutableStateOf<Playlist?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    val playlistTracks by playlistViewModel.getPlaylistTracks(playlistId).collectAsState(emptyList())
 
     LaunchedEffect(playlistId) {
         try {
             playlistViewModel.playlists.collect { playlists ->
                 val foundPlaylist = playlists.find { it.id == playlistId }
-                playlist = foundPlaylist
+                playlist = foundPlaylist?.copy(tracks = playlistTracks)
                 isLoading = false
             }
         } catch (e: Exception) {
             isLoading = false
         }
+    }
+
+    LaunchedEffect(playlistTracks) {
+        playlist = playlist?.copy(tracks = playlistTracks)
     }
 
     Column(

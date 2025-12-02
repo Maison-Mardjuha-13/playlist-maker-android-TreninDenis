@@ -32,4 +32,7 @@ interface TracksDao {
 
     @Query("UPDATE tracks SET isFavorite = :isFavorite WHERE id = :trackId")
     suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean)
+
+    @Query("SELECT * FROM tracks WHERE playlistId = :playlistId")
+    suspend fun getTracksForPlaylist(playlistId: Long): List<TrackEntity>
 }

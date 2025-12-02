@@ -3,6 +3,7 @@ package com.example.playlistmaker.ui.main
 import SearchViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -21,6 +22,8 @@ import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 @Composable
 fun PlaylistHost(navController: NavHostController) {
     val playlistViewModel: PlaylistViewModel = viewModel()
+    val context = LocalContext.current
+
     NavHost(
         navController = navController,
         startDestination = AppScreen.MAIN.name
@@ -36,7 +39,7 @@ fun PlaylistHost(navController: NavHostController) {
 
         composable(AppScreen.SEARCH.name) {
             val searchViewModel: SearchViewModel = viewModel(
-                factory = SearchViewModel.getViewModelFactory()
+                factory = SearchViewModel.getViewModelFactory(context)
             )
             SearchScreen(
                 viewModel = searchViewModel,
@@ -98,6 +101,7 @@ fun PlaylistHost(navController: NavHostController) {
         }
     }
 }
+
 
 private fun navigateToPlaylistDetails(navController: NavController, playlistId: Long) {
     navController.navigate("${AppScreen.PLAYLIST_DETAILS.name}/$playlistId")

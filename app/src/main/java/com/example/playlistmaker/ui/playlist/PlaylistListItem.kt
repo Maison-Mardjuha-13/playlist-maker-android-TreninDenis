@@ -1,6 +1,5 @@
-package com.example.playlistmaker.ui.search
+package com.example.playlistmaker.ui.playlist
 
-import android.graphics.ColorFilter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
