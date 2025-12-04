@@ -6,55 +6,39 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.combinedClickable // Добавляем импорт
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistsScreen(
     modifier: Modifier,
@@ -67,6 +51,10 @@ fun PlaylistsScreen(
     val playlists by playlistViewModel.playlists.collectAsState(emptyList())
     val coverImageUri by playlistViewModel.coverImageUri.collectAsState()
     val context = LocalContext.current
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var playlistToDelete by remember { mutableStateOf<Playlist?>(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         println("PlaylistsScreen: Starting to observe playlists")
@@ -95,6 +83,53 @@ fun PlaylistsScreen(
         }
     }
 
+    if (showDeleteDialog && playlistToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                playlistToDelete = null
+            },
+            title = {
+                Text(
+                    text = "Удалить плейлист?",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Вы уверены, что хотите удалить плейлист \"${playlistToDelete?.name}\"? " +
+                            "Это действие нельзя отменить."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            playlistToDelete?.id?.let { playlistId ->
+                                println("Deleting playlist: ${playlistToDelete?.name}")
+                                playlistViewModel.deletePlaylist(playlistId)
+                            }
+                            showDeleteDialog = false
+                            playlistToDelete = null
+                        }
+                    }
+                ) {
+                    Text("Удалить", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        playlistToDelete = null
+                    }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -111,11 +146,15 @@ fun PlaylistsScreen(
                         .size(32.dp)
                         .clickable { navigateBack() },
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null
+                    contentDescription = "Назад"
                 )
-                Text("Плейлисты", fontSize = 32.sp, modifier = Modifier.padding(start = 16.dp))
+                Text(
+                    text = "Плейлисты",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
             }
-
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -126,16 +165,27 @@ fun PlaylistsScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No playlists yet", color = Color.Gray)
+                    Text(
+                        text = "Пока нет плейлистов",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(playlists.size) { index ->
                         val playlist = playlists[index]
-                        PlaylistContent(playlist = playlist) {
-                            println("PlaylistsScreen: Navigating to playlist ${playlist.id} - ${playlist.name}")
-                            navigateToPlaylist(playlist.id)
-                        }
+                        PlaylistContent(
+                            playlist = playlist,
+                            onClick = {
+                                println("PlaylistsScreen: Navigating to playlist ${playlist.id} - ${playlist.name}")
+                                navigateToPlaylist(playlist.id)
+                            },
+                            onLongClick = {
+                                playlistToDelete = playlist
+                                showDeleteDialog = true
+                            }
+                        )
                         HorizontalDivider(thickness = 0.5.dp)
                     }
                 }
@@ -150,44 +200,50 @@ fun PlaylistsScreen(
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.BottomEnd),
-            containerColor = Color.Gray
+            containerColor = Color(0xFF4CAF50)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Add playlist"
+                contentDescription = "Добавить плейлист",
+                tint = Color.White
             )
         }
     }
 }
 
-
-
-
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlaylistContent(playlist: Playlist, onClick: () -> Unit) {
+fun PlaylistContent(
+    playlist: Playlist,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+            .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier
+                .size(48.dp),
             contentAlignment = Alignment.Center
         ) {
             if (playlist.coverImageUri != null && playlist.coverImageUri.isNotBlank()) {
                 AsyncImage(
                     model = Uri.parse(playlist.coverImageUri),
-                    contentDescription = "Playlist cover",
+                    contentDescription = "Обложка плейлиста",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.ic_music),
-                    contentDescription = "Default playlist icon",
+                    contentDescription = "Иконка плейлиста по умолчанию",
                     modifier = Modifier.fillMaxSize(),
                     colorFilter = ColorFilter.tint(Color.Gray)
                 )
@@ -202,12 +258,14 @@ fun PlaylistContent(playlist: Playlist, onClick: () -> Unit) {
             Text(
                 text = playlist.name,
                 fontSize = 18.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
             Text(
                 text = playlist.description,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                maxLines = 1
             )
             Text(
                 text = "Треков: ${playlist.tracks.size}",

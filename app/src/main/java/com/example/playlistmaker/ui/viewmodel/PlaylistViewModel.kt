@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -21,10 +22,10 @@ class PlaylistViewModel : ViewModel() {
     private val playlistsRepository: PlaylistsRepository = Creator.getPlaylistsRepository()
     private val tracksRepository: TracksRepository = Creator.getTracksRepository()
 
-    val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
+    val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks().flowOn(Dispatchers.IO)
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
-    val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
+    val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists().flowOn(Dispatchers.IO)
     private var _coverImageUri = MutableStateFlow<String?>(null)
     val coverImageUri: StateFlow<String?> = _coverImageUri.asStateFlow()
 
@@ -82,14 +83,14 @@ class PlaylistViewModel : ViewModel() {
         tracksRepository.deleteTrackFromPlaylist(track)
     }
 
-    suspend fun deletePlaylistById(id: Long) {
-        tracksRepository.deleteTracksByPlaylistId(id)
-        playlistsRepository.deletePlaylistById(id)
+    suspend fun deletePlaylist(playlistId: Long) {
+        playlistsRepository.deletePlaylistById(playlistId)
+        loadPlaylists()
     }
 
-    suspend fun isExist(track: Track): Track? {
-        return tracksRepository.getTrackByNameAndArtist(track).firstOrNull()
-    }
+    //suspend fun isExist(track: Track): Track? {
+    //    return tracksRepository.getTrackByNameAndArtist(track).firstOrNull()
+    //}
 
     suspend fun getTrackById(trackId: Long): Track? {
         return tracksRepository.getTrackById(trackId)

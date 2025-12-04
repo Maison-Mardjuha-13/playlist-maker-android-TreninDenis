@@ -8,10 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,43 +17,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.search.TrackListItem
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
-import com.example.playlistmaker.R
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistDetailsScreen(
     playlistId: Long,
     onBackClick: () -> Unit,
     onTrackClick: (Long) -> Unit,
     playlistViewModel: PlaylistViewModel,
-    coverImageUri: String?
+    coverImageUri: String?,
+    onDeletePlaylist: () -> Unit
 ) {
-    var playlist by remember { mutableStateOf<Playlist?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    val playlists by playlistViewModel.playlists.collectAsState(emptyList())
     val playlistTracks by playlistViewModel.getPlaylistTracks(playlistId).collectAsState(emptyList())
 
-    LaunchedEffect(playlistId) {
-        try {
-            playlistViewModel.playlists.collect { playlists ->
-                val foundPlaylist = playlists.find { it.id == playlistId }
-                playlist = foundPlaylist?.copy(tracks = playlistTracks)
-                isLoading = false
-            }
-        } catch (e: Exception) {
-            isLoading = false
-        }
+    val playlist = remember(playlistId, playlists) {
+        playlists.find { it.id == playlistId }?.copy(tracks = playlistTracks)
     }
 
-    LaunchedEffect(playlistTracks) {
-        playlist = playlist?.copy(tracks = playlistTracks)
-    }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -63,7 +54,6 @@ fun PlaylistDetailsScreen(
             .statusBarsPadding()
             .padding(16.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -79,7 +69,17 @@ fun PlaylistDetailsScreen(
                 text = "Playlist Details",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .weight(1f)
+            )
+            Icon(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { showDeleteDialog = true },
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete playlist",
+                tint = Color.Red
             )
         }
 
@@ -87,11 +87,13 @@ fun PlaylistDetailsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
+                .padding(top = 16.dp)
         ) {
-            if (coverImageUri != null) {
+            val actualCoverUri = coverImageUri ?: playlist?.coverImageUri
+            if (actualCoverUri != null && actualCoverUri.isNotBlank()) {
                 AsyncImage(
-                    model = Uri.parse(coverImageUri),
-                    contentDescription = null,
+                    model = Uri.parse(actualCoverUri),
+                    contentDescription = "Playlist cover",
                     modifier = Modifier
                         .fillMaxSize()
                         .align(Alignment.Center),
@@ -100,7 +102,7 @@ fun PlaylistDetailsScreen(
             } else {
                 Image(
                     painter = painterResource(R.drawable.ic_cover_photo_add),
-                    contentDescription = null,
+                    contentDescription = "No cover",
                     colorFilter = ColorFilter.tint(Color.Gray),
                     modifier = Modifier
                         .fillMaxSize()
@@ -111,14 +113,7 @@ fun PlaylistDetailsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (playlist == null) {
+        if (playlist == null) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -126,33 +121,31 @@ fun PlaylistDetailsScreen(
                 Text("Playlist not found", color = Color.Red)
             }
         } else {
-            val currentPlaylist = playlist!!
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
             ) {
                 Text(
-                    text = currentPlaylist.name,
+                    text = playlist.name,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = currentPlaylist.description,
+                    text = playlist.description,
                     fontSize = 16.sp,
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${currentPlaylist.tracks.size} tracks",
+                    text = "${playlist.tracks.size} tracks",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
             }
 
-            if (currentPlaylist.tracks.isEmpty()) {
+            if (playlist.tracks.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -169,7 +162,7 @@ fun PlaylistDetailsScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(currentPlaylist.tracks) { track ->
+                    items(playlist.tracks) { track ->
                         TrackListItem(
                             track = track,
                             onClick = { onTrackClick(track.id) }
@@ -179,5 +172,38 @@ fun PlaylistDetailsScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Удалить плейлист?") },
+            text = {
+                Text(
+                    "Вы уверены, что хотите удалить плейлист \"${playlist?.name}\"? " +
+                            "Это действие нельзя отменить."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        scope.launch {
+                            playlistViewModel.deletePlaylist(playlistId)
+                            onDeletePlaylist()
+                        }
+                    }
+                ) {
+                    Text("Удалить", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
     }
 }

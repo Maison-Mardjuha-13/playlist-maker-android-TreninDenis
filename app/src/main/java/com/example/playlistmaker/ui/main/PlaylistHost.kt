@@ -103,8 +103,6 @@ fun PlaylistHost(navController: NavHostController) {
 
             val playlists by playlistViewModel.playlists.collectAsState(initial = emptyList())
 
-
-
             LaunchedEffect(playlistId, playlists) {
                 val playlist = playlists.find { it.id == playlistId }
                 playlistCover = playlist?.coverImageUri
@@ -115,7 +113,10 @@ fun PlaylistHost(navController: NavHostController) {
                 onBackClick = { navController.popBackStack() },
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
                 playlistViewModel = playlistViewModel,
-                coverImageUri = playlistCover
+                coverImageUri = playlistCover,
+                onDeletePlaylist = {
+                    navController.popBackStack()
+                }
             )
         }
     }

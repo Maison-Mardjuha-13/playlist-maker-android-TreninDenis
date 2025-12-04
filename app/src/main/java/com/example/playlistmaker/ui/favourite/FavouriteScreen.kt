@@ -1,6 +1,7 @@
 package com.example.playlistmaker.ui.favourite
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,11 +15,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,23 +35,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
+import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.ui.search.TrackListItem
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.ExperimentalFoundationApi
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FavouriteScreen(
     onBackClick: () -> Unit,
     onTrackClick: (Long) -> Unit,
     playlistViewModel: PlaylistViewModel
 ) {
-
     val favoriteTracks by playlistViewModel.favoriteList.collectAsState(emptyList())
-
     val medium_size = dimensionResource(R.dimen.medium)
     val large_size = dimensionResource(R.dimen.large)
     val exlarge_size = dimensionResource(R.dimen.exlarge)
     val largetext_size = dimensionResource(R.dimen.largetext)
     var fav_title = stringResource(R.string.favourite_name)
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var trackToDelete by remember { mutableStateOf<Track?>(null) }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -88,12 +101,62 @@ fun FavouriteScreen(
         } else {
             LazyColumn {
                 items(favoriteTracks.size) { index ->
+                    val track = favoriteTracks[index]
                     TrackListItem(
-                        track = favoriteTracks[index],
-                        onClick = { onTrackClick(favoriteTracks[index].id) }
+                        track = track,
+                        onClick = { onTrackClick(track.id) },
+                        onLongClick = {
+                            trackToDelete = track
+                            showDeleteDialog = true
+                        }
                     )
                 }
             }
         }
+    }
+
+    if (showDeleteDialog && trackToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                trackToDelete = null
+            },
+            title = {
+                Text(
+                    text = "Удалить из избранного?",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Вы уверены, что хотите удалить этот трек из избранного?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            trackToDelete?.let { track ->
+                                playlistViewModel.toggleFavorite(track, false)
+                            }
+                            showDeleteDialog = false
+                            trackToDelete = null
+                        }
+                    }
+                ) {
+                    Text("Удалить", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        trackToDelete = null
+                    }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
     }
 }
