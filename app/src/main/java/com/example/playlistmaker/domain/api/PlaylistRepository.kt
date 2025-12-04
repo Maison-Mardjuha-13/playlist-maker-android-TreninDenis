@@ -1,15 +1,19 @@
 package com.example.playlistmaker.domain.api
 
 import com.example.playlistmaker.domain.models.Playlist
-import com.example.playlistmaker.domain.models.Track
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PlaylistsRepository {
     fun getPlaylist(playlistId: Long): Flow<Playlist?>
 
     fun getAllPlaylists(): Flow<List<Playlist>>
 
-    suspend fun addNewPlaylist(name: String, description: String)
+    suspend fun addNewPlaylist(
+        name: String,
+        description: String,
+        coverImage: String?
+    )
 
     suspend fun deletePlaylistById(id: Long)
 }

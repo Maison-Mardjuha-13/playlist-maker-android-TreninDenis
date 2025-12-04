@@ -3,6 +3,8 @@ package com.example.playlistmaker.creator
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.playlistmaker.data.database.AppDatabase
 import com.example.playlistmaker.data.network.ITunesApi
 import com.example.playlistmaker.data.network.NetworkModule
@@ -23,12 +25,13 @@ object Creator {
     private var searchHistoryRepository: SearchHistoryRepository? = null
     private var appPreferences: AppPreferences? = null
 
+
     fun initDatabase(context: Context) {
         database = Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "playlist_maker.db"
-        ).build()
+                context,
+                AppDatabase::class.java,
+                "playlist_maker.db"
+            ).fallbackToDestructiveMigration(false).build()
     }
 
     private fun getDatabase(): AppDatabase {

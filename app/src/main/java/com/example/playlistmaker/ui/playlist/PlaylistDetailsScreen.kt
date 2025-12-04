@@ -1,5 +1,7 @@
 package com.example.playlistmaker.ui.playlist
 
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,21 +16,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.search.TrackListItem
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
-import kotlinx.coroutines.flow.collectLatest
+import com.example.playlistmaker.R
 
 @Composable
 fun PlaylistDetailsScreen(
     playlistId: Long,
     onBackClick: () -> Unit,
     onTrackClick: (Long) -> Unit,
-    playlistViewModel: PlaylistViewModel
+    playlistViewModel: PlaylistViewModel,
+    coverImageUri: String?
 ) {
     var playlist by remember { mutableStateOf<Playlist?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -56,6 +63,7 @@ fun PlaylistDetailsScreen(
             .statusBarsPadding()
             .padding(16.dp)
     ) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -73,6 +81,32 @@ fun PlaylistDetailsScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 16.dp)
             )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        ) {
+            if (coverImageUri != null) {
+                AsyncImage(
+                    model = Uri.parse(coverImageUri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.ic_cover_photo_add),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(Color.Gray),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))

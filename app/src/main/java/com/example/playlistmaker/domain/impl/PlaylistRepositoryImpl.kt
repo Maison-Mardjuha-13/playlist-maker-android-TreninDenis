@@ -1,16 +1,14 @@
 package com.example.playlistmaker.domain.impl
 
-import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.data.database.dao.PlaylistDao
 import com.example.playlistmaker.data.database.dao.TracksDao
-import com.example.playlistmaker.data.database.entity.PlaylistEntity
 import com.example.playlistmaker.data.database.toPlaylist
 import com.example.playlistmaker.data.database.toTrack
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.models.Playlist
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
 class PlaylistsRepositoryImpl(
@@ -39,11 +37,16 @@ class PlaylistsRepositoryImpl(
             }
     }
 
-    override suspend fun addNewPlaylist(name: String, description: String) {
+    override suspend fun addNewPlaylist(
+        name: String,
+        description: String,
+        coverImageUri: String?
+    ) {
         playlistDao.insertPlaylist(
             com.example.playlistmaker.data.database.entity.PlaylistEntity(
                 name = name,
-                description = description
+                description = description,
+                coverImageUri = coverImageUri
             )
         )
     }

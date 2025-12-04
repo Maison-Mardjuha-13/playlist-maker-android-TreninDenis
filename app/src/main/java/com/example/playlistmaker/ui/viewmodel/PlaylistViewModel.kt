@@ -6,16 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.api.TracksRepository
-import com.example.playlistmaker.domain.impl.PlaylistsRepositoryImpl
-import com.example.playlistmaker.domain.impl.TracksRepositoryImpl
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.domain.models.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class PlaylistViewModel : ViewModel() {
@@ -26,6 +25,8 @@ class PlaylistViewModel : ViewModel() {
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
     val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
+    private var _coverImageUri = MutableStateFlow<String?>(null)
+    val coverImageUri: StateFlow<String?> = _coverImageUri.asStateFlow()
 
 
     init {
@@ -48,8 +49,20 @@ class PlaylistViewModel : ViewModel() {
 
     fun createNewPlayList(namePlaylist: String, description: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.addNewPlaylist(namePlaylist, description)
+            val currentCoverUri = _coverImageUri.value
+            playlistsRepository.addNewPlaylist(namePlaylist, description, currentCoverUri)
+            _coverImageUri.value = null
             loadPlaylists()
+        }
+    }
+
+    fun setCoverImageUri(uri: String?) {
+        _coverImageUri.value = uri
+    }
+
+    fun getPlaylistById(playlistId: Long): Flow<Playlist?> {
+        return playlists.map { playlistsList ->
+            playlistsList.find { it.id == playlistId }
         }
     }
 

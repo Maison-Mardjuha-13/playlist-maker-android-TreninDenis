@@ -2,6 +2,12 @@ package com.example.playlistmaker.ui.main
 
 import SearchViewModel
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +24,7 @@ import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.track.TrackDetailsScreen
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
+import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
@@ -92,11 +99,23 @@ fun PlaylistHost(navController: NavHostController) {
 
         composable("${AppScreen.PLAYLIST_DETAILS.name}/{playlistId}") { backStackEntry ->
             val playlistId = backStackEntry.arguments?.getString("playlistId")?.toLongOrNull() ?: 0L
+            var playlistCover by remember { mutableStateOf<String?>(null) }
+
+            val playlists by playlistViewModel.playlists.collectAsState(initial = emptyList())
+
+
+
+            LaunchedEffect(playlistId, playlists) {
+                val playlist = playlists.find { it.id == playlistId }
+                playlistCover = playlist?.coverImageUri
+            }
+
             PlaylistDetailsScreen(
                 playlistId = playlistId,
                 onBackClick = { navController.popBackStack() },
                 onTrackClick = { trackId -> navigateToTrackDetails(navController, trackId) },
-                playlistViewModel = playlistViewModel
+                playlistViewModel = playlistViewModel,
+                coverImageUri = playlistCover
             )
         }
     }

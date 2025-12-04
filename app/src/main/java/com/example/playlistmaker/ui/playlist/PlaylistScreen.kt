@@ -1,7 +1,15 @@
 package com.example.playlistmaker.ui.playlist
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,12 +38,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
@@ -50,6 +65,8 @@ fun PlaylistsScreen(
     navController: NavHostController
 ) {
     val playlists by playlistViewModel.playlists.collectAsState(emptyList())
+    val coverImageUri by playlistViewModel.coverImageUri.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         println("PlaylistsScreen: Starting to observe playlists")
@@ -59,6 +76,22 @@ fun PlaylistsScreen(
         println("PlaylistsScreen: Current playlists count: ${playlists.size}")
         playlists.forEach { playlist ->
             println("Playlist: ${playlist.id} - ${playlist.name}")
+        }
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            playlistViewModel.setCoverImageUri(it.toString())
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            imagePickerLauncher.launch("image/*")
         }
     }
 
@@ -82,6 +115,7 @@ fun PlaylistsScreen(
                 )
                 Text("Плейлисты", fontSize = 32.sp, modifier = Modifier.padding(start = 16.dp))
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -139,6 +173,29 @@ fun PlaylistContent(playlist: Playlist, onClick: () -> Unit) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (playlist.coverImageUri != null && playlist.coverImageUri.isNotBlank()) {
+                AsyncImage(
+                    model = Uri.parse(playlist.coverImageUri),
+                    contentDescription = "Playlist cover",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_music),
+                    contentDescription = "Default playlist icon",
+                    modifier = Modifier.fillMaxSize(),
+                    colorFilter = ColorFilter.tint(Color.Gray)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
