@@ -61,6 +61,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     val share = stringResource(R.string.share)
     val choseem = stringResource(R.string.choose_email)
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()

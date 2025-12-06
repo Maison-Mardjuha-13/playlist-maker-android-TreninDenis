@@ -3,11 +3,8 @@ package com.example.playlistmaker.creator
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.playlistmaker.data.database.AppDatabase
 import com.example.playlistmaker.data.network.ITunesApi
-import com.example.playlistmaker.data.network.NetworkModule
 import com.example.playlistmaker.data.network.RetrofitNetworkClient
 import com.example.playlistmaker.data.preferences.AppPreferences
 import com.example.playlistmaker.domain.api.PlaylistsRepository
@@ -19,11 +16,15 @@ import com.example.playlistmaker.domain.impl.TracksRepositoryImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
+
 object Creator {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var database: AppDatabase? = null
     private var searchHistoryRepository: SearchHistoryRepository? = null
     private var appPreferences: AppPreferences? = null
+
+
+
 
 
     fun initDatabase(context: Context) {

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -87,10 +86,6 @@ class PlaylistViewModel : ViewModel() {
         playlistsRepository.deletePlaylistById(playlistId)
         loadPlaylists()
     }
-
-    //suspend fun isExist(track: Track): Track? {
-    //    return tracksRepository.getTrackByNameAndArtist(track).firstOrNull()
-    //}
 
     suspend fun getTrackById(trackId: Long): Track? {
         return tracksRepository.getTrackById(trackId)

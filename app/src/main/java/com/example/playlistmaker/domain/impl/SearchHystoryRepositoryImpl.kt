@@ -14,6 +14,7 @@ class SearchHistoryRepositoryImpl(
     private val dataStore: DataStore<Preferences>
 ) : SearchHistoryRepository {
 
+
     private val preferencesKey = stringPreferencesKey("search_history")
 
     override suspend fun addEntry(word: String) {

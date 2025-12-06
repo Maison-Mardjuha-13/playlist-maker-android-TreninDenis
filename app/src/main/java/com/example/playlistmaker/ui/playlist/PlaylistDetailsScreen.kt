@@ -18,15 +18,15 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
-import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.search.TrackListItem
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,11 +48,30 @@ fun PlaylistDetailsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    val small = dimensionResource(R.dimen.small) //8dp
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val large = dimensionResource(R.dimen.large) //24dp
+    val exlarge = dimensionResource(R.dimen.exlarge) //32dp
+    val dvesti = dimensionResource(R.dimen.dvesti)
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+    val large_text = dimensionResource(R.dimen.largetext).value.sp //24sp
+
+    val pl_details = stringResource(R.string.pl_details)
+    val pl_not_found = stringResource(R.string.pl_not_found)
+    val tracks = stringResource(R.string.tracks)
+    val no_tracks = stringResource(R.string.no_tracks_in_pl)
+    val sure = stringResource(R.string.sure_del_pl)
+    val no_back = stringResource(R.string.no_step_to_back)
+    val ask_del_pl = stringResource(R.string.ask_del_pl)
+    val delete = stringResource(R.string.delete)
+    val cancel = stringResource(R.string.cancel)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(16.dp)
+            .padding(medium)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -60,25 +79,25 @@ fun PlaylistDetailsScreen(
         ) {
             Icon(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge)
                     .clickable { onBackClick() },
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
+                contentDescription = null
             )
             Text(
-                text = "Playlist Details",
-                fontSize = 24.sp,
+                text = pl_details,
+                fontSize = large_text,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .padding(start = 16.dp)
+                    .padding(start = medium)
                     .weight(1f)
             )
             Icon(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge)
                     .clickable { showDeleteDialog = true },
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Delete playlist",
+                contentDescription = null,
                 tint = Color.Red
             )
         }
@@ -86,14 +105,14 @@ fun PlaylistDetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .padding(top = 16.dp)
+                .height(dvesti)
+                .padding(top = medium)
         ) {
             val actualCoverUri = coverImageUri ?: playlist?.coverImageUri
             if (actualCoverUri != null && actualCoverUri.isNotBlank()) {
                 AsyncImage(
                     model = Uri.parse(actualCoverUri),
-                    contentDescription = "Playlist cover",
+                    contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .align(Alignment.Center),
@@ -102,7 +121,7 @@ fun PlaylistDetailsScreen(
             } else {
                 Image(
                     painter = painterResource(R.drawable.ic_cover_photo_add),
-                    contentDescription = "No cover",
+                    contentDescription = null,
                     colorFilter = ColorFilter.tint(Color.Gray),
                     modifier = Modifier
                         .fillMaxSize()
@@ -111,36 +130,36 @@ fun PlaylistDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(exlarge))
 
         if (playlist == null) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Playlist not found", color = Color.Red)
+                Text(pl_not_found, color = Color.Red)
             }
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = large)
             ) {
                 Text(
                     text = playlist.name,
-                    fontSize = 24.sp,
+                    fontSize = large_text,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(small))
                 Text(
                     text = playlist.description,
-                    fontSize = 16.sp,
+                    fontSize = m_text,
                     color = Color.Gray
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(small))
                 Text(
-                    text = "${playlist.tracks.size} tracks",
-                    fontSize = 14.sp,
+                    text = "${playlist.tracks.size} $tracks",
+                    fontSize = m_text,
                     color = Color.Gray
                 )
             }
@@ -153,9 +172,9 @@ fun PlaylistDetailsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No tracks in this playlist",
+                        text = no_tracks,
                         color = Color.Gray,
-                        fontSize = 16.sp
+                        fontSize = m_text
                     )
                 }
             } else {
@@ -177,11 +196,10 @@ fun PlaylistDetailsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Удалить плейлист?") },
+            title = { Text(ask_del_pl) },
             text = {
                 Text(
-                    "Вы уверены, что хотите удалить плейлист \"${playlist?.name}\"? " +
-                            "Это действие нельзя отменить."
+                    "$sure \"${playlist?.name}\"? " + no_back
                 )
             },
             confirmButton = {
@@ -194,14 +212,14 @@ fun PlaylistDetailsScreen(
                         }
                     }
                 ) {
-                    Text("Удалить", color = Color.Red)
+                    Text(delete, color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteDialog = false }
                 ) {
-                    Text("Отмена")
+                    Text(cancel)
                 }
             }
         )

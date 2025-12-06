@@ -1,7 +1,6 @@
 package com.example.playlistmaker.ui.favourite
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Track
@@ -40,6 +38,7 @@ import com.example.playlistmaker.ui.search.TrackListItem
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -53,7 +52,12 @@ fun FavouriteScreen(
     val large_size = dimensionResource(R.dimen.large)
     val exlarge_size = dimensionResource(R.dimen.exlarge)
     val largetext_size = dimensionResource(R.dimen.largetext)
-    var fav_title = stringResource(R.string.favourite_name)
+    val fav_title = stringResource(R.string.favourite_name)
+    val no_fav = stringResource(R.string.no_favourite)
+    val ask_del_from_fav = stringResource(R.string.ask_del_from_fav)
+    val sure_del_fav = stringResource(R.string.sure_del_fav)
+    val delete = stringResource(R.string.delete)
+    val cancel = stringResource(R.string.cancel)
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var trackToDelete by remember { mutableStateOf<Track?>(null) }
@@ -72,7 +76,7 @@ fun FavouriteScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = null,
                 modifier = Modifier
                     .size(exlarge_size)
@@ -93,10 +97,10 @@ fun FavouriteScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(medium_size),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Нет избранных треков", color = Color.Gray)
+                Text(no_fav, color = Color.Gray)
             }
         } else {
             LazyColumn {
@@ -123,13 +127,13 @@ fun FavouriteScreen(
             },
             title = {
                 Text(
-                    text = "Удалить из избранного?",
+                    text = ask_del_from_fav,
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = "Вы уверены, что хотите удалить этот трек из избранного?"
+                    text = sure_del_fav
                 )
             },
             confirmButton = {
@@ -144,7 +148,7 @@ fun FavouriteScreen(
                         }
                     }
                 ) {
-                    Text("Удалить", color = Color.Red)
+                    Text(delete, color = Color.Red)
                 }
             },
             dismissButton = {
@@ -154,7 +158,7 @@ fun FavouriteScreen(
                         trackToDelete = null
                     }
                 ) {
-                    Text("Отмена")
+                    Text(cancel)
                 }
             }
         )

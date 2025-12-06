@@ -2,7 +2,6 @@ package com.example.playlistmaker.domain.api
 
 import com.example.playlistmaker.domain.models.Playlist
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface PlaylistsRepository {
     fun getPlaylist(playlistId: Long): Flow<Playlist?>

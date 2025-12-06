@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -24,7 +23,6 @@ import com.example.playlistmaker.ui.search.SearchScreen
 import com.example.playlistmaker.ui.settings.SettingsScreen
 import com.example.playlistmaker.ui.track.TrackDetailsScreen
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
-import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun PlaylistHost(navController: NavHostController) {
@@ -63,12 +61,10 @@ fun PlaylistHost(navController: NavHostController) {
 
         composable(AppScreen.PLAYLIST.name) {
             PlaylistsScreen(
-                modifier = Modifier,
                 playlistViewModel = playlistViewModel,
                 addNewPlaylist = { navigateToNewPlaylist(navController) },
                 navigateToPlaylist = { playlistId -> navigateToPlaylistDetails(navController, playlistId) },
-                navigateBack = { navController.popBackStack()},
-                navController = navController
+                navigateBack = { navController.popBackStack()}
             )
         }
 

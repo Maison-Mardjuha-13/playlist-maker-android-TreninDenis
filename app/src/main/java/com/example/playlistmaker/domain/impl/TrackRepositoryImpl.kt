@@ -1,7 +1,6 @@
 package com.example.playlistmaker.domain.impl
 
 import com.example.playlistmaker.data.database.dao.TracksDao
-import com.example.playlistmaker.data.database.entity.TrackEntity
 import com.example.playlistmaker.data.database.toEntity
 import com.example.playlistmaker.data.database.toTrack
 import com.example.playlistmaker.domain.api.TracksRepository
@@ -10,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import com.example.playlistmaker.data.network.ITunesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -58,7 +56,6 @@ class TracksRepositoryImpl(
     }
 
     override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        println("updateTrackFavoriteStatus: ${track.trackName}, favorite: $isFavorite")
 
         val existingTrack = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
 
@@ -66,11 +63,9 @@ class TracksRepositoryImpl(
             val updatedTrack = existingTrack.copy(isFavorite = isFavorite)
 
             tracksDao.update(updatedTrack)
-            println("Updated existing track ID: ${existingTrack.id}")
         } else {
             val newTrack = track.toEntity().copy(isFavorite = isFavorite)
             tracksDao.insert(newTrack)
-            println("Inserted new track")
         }
     }
 

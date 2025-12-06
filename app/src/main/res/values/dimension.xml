@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="xs">0.5dp</dimen>
+    <dimen name="very_small">4dp</dimen>
     <dimen name="small">8dp</dimen>
     <dimen name="medium">16dp</dimen>
     <dimen name="large">24dp</dimen>
     <dimen name="exlarge">32dp</dimen>
+    <dimen name="xl">48dp</dimen>
     <dimen name="xxl">64dp</dimen>
     <dimen name="xxxl">100dp</dimen>
+    <dimen name="dvesti">200dp</dimen>
+    <dimen name="s400">400dp</dimen>
+
+
+    <dimen name="mediumtext">16sp</dimen>
     <dimen name="largetext">24sp</dimen>
+    <dimen name="xltext">32sp</dimen>
 </resources>

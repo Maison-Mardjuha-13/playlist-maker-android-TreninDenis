@@ -8,7 +8,6 @@ import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.models.Playlist
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
 class PlaylistsRepositoryImpl(
