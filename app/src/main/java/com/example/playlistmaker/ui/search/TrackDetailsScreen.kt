@@ -22,11 +22,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.playlistmaker.R
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,6 +46,21 @@ fun TrackDetailsScreen(
     val sheetState = rememberModalBottomSheetState()
     var showPlaylistSheet by remember { mutableStateOf(false) }
 
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val exlarge = dimensionResource(R.dimen.exlarge) //32dp
+    val xl = dimensionResource(R.dimen.xl) //48.dp
+
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+    val large_text = dimensionResource(R.dimen.largetext).value.sp //24sp
+
+    val track_details = stringResource(R.string.track_details)
+    val track_not_found = stringResource(R.string.track_not_found)
+    val trackName = stringResource(R.string.trackName)
+    val artistName = stringResource(R.string.artistName)
+    val trDuration = stringResource(R.string.duration)
+
+
     LaunchedEffect(trackId) {
         try {
             track = playlistViewModel.getTrackById(trackId)
@@ -56,7 +74,8 @@ fun TrackDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .statusBarsPadding()
+            .padding(medium)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -64,19 +83,19 @@ fun TrackDetailsScreen(
         ) {
             Icon(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge)
                     .clickable { onBackClick() },
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
+                contentDescription = null
             )
             Text(
-                text = "Track Details",
-                fontSize = 24.sp,
-                modifier = Modifier.padding(start = 16.dp)
+                text = track_details,
+                fontSize = large_text,
+                modifier = Modifier.padding(start = medium)
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(exlarge))
 
         if (isLoading) {
             Box(
@@ -90,17 +109,17 @@ fun TrackDetailsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Track not found", color = Color.Red)
+                Text(track_not_found, color = Color.Red)
             }
         } else {
             val currentTrack = track!!
             Column {
-                Text("Title: ${currentTrack.trackName}", fontSize = 18.sp)
-                Text("Artist: ${currentTrack.artistName}", fontSize = 16.sp)
-                Text("Duration: ${currentTrack.getFormattedTrackTime()}", fontSize = 16.sp)
+                Text("$trackName ${currentTrack.trackName}", fontSize = m_text)
+                Text("$artistName ${currentTrack.artistName}", fontSize = m_text)
+                Text("$trDuration ${currentTrack.getFormattedTrackTime()}", fontSize = m_text)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(exlarge))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -108,7 +127,7 @@ fun TrackDetailsScreen(
             ) {
                 Icon(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(xl)
                         .clickable {
                             coroutineScope.launch {
                                 val newFavoriteStatus = !currentTrack.isFavorite
@@ -117,17 +136,17 @@ fun TrackDetailsScreen(
                             }
                         },
                     imageVector = Icons.Filled.Favorite,
-                    contentDescription = "Favorite",
+                    contentDescription = null,
                     tint = if (currentTrack.isFavorite) Color.Red else Color.Gray
                 )
                 Icon(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(xl)
                         .clickable {
                             showPlaylistSheet = true
                         },
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Add to playlist",
+                    contentDescription = null,
                     tint = Color.Blue
                 )
             }
@@ -164,6 +183,20 @@ fun PlaylistSelectionSheetContent(
     val playlists by playlistViewModel.playlists.collectAsState(emptyList())
     var isLoading by remember { mutableStateOf(true) }
 
+    val small = dimensionResource(R.dimen.small) //8dp
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val large = dimensionResource(R.dimen.large) //24dp
+    val xxxl = dimensionResource(R.dimen.xxxl) //100dp
+    val s400 = dimensionResource(R.dimen.s400)
+
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+
+    val select_pl = stringResource(R.string.select_pl)
+    val no_pl_yet = stringResource(R.string.no_pl_yet)
+    val create_pl_first = stringResource(R.string.create_pl_first)
+    val cancel = stringResource(R.string.cancel)
+
     LaunchedEffect(playlists) {
         isLoading = false
     }
@@ -171,19 +204,19 @@ fun PlaylistSelectionSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(medium)
     ) {
         Text(
-            text = "Select Playlist",
+            text = select_pl,
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = medium)
         )
 
         if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
+                    .height(xxxl),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -192,25 +225,25 @@ fun PlaylistSelectionSheetContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .padding(vertical = large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "No playlists yet",
+                    text = no_pl_yet,
                     color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = small)
                 )
                 Text(
-                    text = "Create a playlist first",
+                    text = create_pl_first,
                     color = Color.LightGray,
-                    fontSize = 14.sp
+                    fontSize = m_text
                 )
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 400.dp)
+                    .heightIn(max = s400)
             ) {
                 items(playlists) { playlist ->
                     PlaylistSelectionItem(
@@ -221,13 +254,13 @@ fun PlaylistSelectionSheetContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(medium))
 
         OutlinedButton(
             onClick = onDismiss,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Cancel")
+            Text(cancel)
         }
     }
 }
@@ -237,20 +270,26 @@ fun PlaylistSelectionItem(
     playlist: com.example.playlistmaker.domain.models.Playlist,
     onClick: () -> Unit
 ) {
+    val tracks = stringResource(R.string.tracks)
+
+    val very_small = dimensionResource(R.dimen.very_small)
+    val medium = dimensionResource(R.dimen.medium)
+    val xs = dimensionResource(R.dimen.xs)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(vertical = very_small),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = xs)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(medium)
         ) {
             Text(
                 text = playlist.name,
@@ -260,13 +299,13 @@ fun PlaylistSelectionItem(
                 text = playlist.description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = very_small)
             )
             Text(
-                text = "${playlist.tracks.size} tracks",
+                text = "${playlist.tracks.size} $tracks",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.LightGray,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = very_small)
             )
         }
     }

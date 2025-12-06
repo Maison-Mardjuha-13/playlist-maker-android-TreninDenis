@@ -8,6 +8,8 @@ import com.example.playlistmaker.domain.models.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import com.example.playlistmaker.data.network.ITunesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
 class TracksRepositoryImpl(
@@ -40,9 +42,9 @@ class TracksRepositoryImpl(
         }
     }
 
-    override fun getTrackByNameAndArtist(track: Track): Flow<Track?> {
-        return tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
-            .map { it?.toTrack() }
+    override suspend fun getTrackByNameAndArtist(track: Track): Track? {
+        val entity = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
+        return entity?.toTrack()
     }
 
     override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
@@ -54,7 +56,17 @@ class TracksRepositoryImpl(
     }
 
     override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        tracksDao.updateFavoriteStatus(track.id, isFavorite)
+
+        val existingTrack = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
+
+        if (existingTrack != null) {
+            val updatedTrack = existingTrack.copy(isFavorite = isFavorite)
+
+            tracksDao.update(updatedTrack)
+        } else {
+            val newTrack = track.toEntity().copy(isFavorite = isFavorite)
+            tracksDao.insert(newTrack)
+        }
     }
 
     override suspend fun deleteTracksByPlaylistId(playlistId: Long) {
@@ -62,9 +74,11 @@ class TracksRepositoryImpl(
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
-        return tracksDao.getFavoriteTracks().map { entities ->
-            entities.map { it.toTrack() }
-        }
+        return tracksDao.getFavoriteTracks()
+            .map { trackEntities ->
+                trackEntities.map { it.toTrack() }
+            }
+            .flowOn(Dispatchers.IO)
     }
 
     override suspend fun getTrackById(trackId: Long): Track? {
@@ -75,4 +89,5 @@ class TracksRepositoryImpl(
         return tracksDao.getTracksByPlaylistId(playlistId)
             .map { entities -> entities.map { it.toTrack() } }
     }
+
 }

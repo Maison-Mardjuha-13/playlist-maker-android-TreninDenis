@@ -1,8 +1,5 @@
 package com.example.playlistmaker.data.network
 
-import com.example.playlistmaker.creator.Storage
-import com.example.playlistmaker.data.dto.TrackSearchRequest
-import com.example.playlistmaker.data.dto.TrackSearchResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

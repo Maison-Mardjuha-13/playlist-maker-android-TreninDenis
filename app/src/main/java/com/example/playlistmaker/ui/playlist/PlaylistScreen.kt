@@ -1,65 +1,119 @@
 package com.example.playlistmaker.ui.playlist
 
-import androidx.compose.foundation.background
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
+import com.example.playlistmaker.R
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistsScreen(
-    modifier: Modifier,
     playlistViewModel: PlaylistViewModel,
     addNewPlaylist: () -> Unit,
     navigateToPlaylist: (Long) -> Unit,
-    navigateBack: () -> Unit,
-    navController: NavHostController
+    navigateBack: () -> Unit
 ) {
     val playlists by playlistViewModel.playlists.collectAsState(emptyList())
 
-    LaunchedEffect(Unit) {
-        println("PlaylistsScreen: Starting to observe playlists")
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var playlistToDelete by remember { mutableStateOf<Playlist?>(null) }
+    val scope = rememberCoroutineScope()
+    
+    val del_pl = stringResource(R.string.ask_del_pl)
+    val sure_del_pl = stringResource(R.string.sure_del_pl)
+    val no_back = stringResource(R.string.no_step_to_back)
+    val delete = stringResource(R.string.delete)
+    val cancel = stringResource(R.string.cancel)
+    val pl_title = stringResource(R.string.playlist_name)
+    val no_pl_yet = stringResource(R.string.no_pl_yet)
+
+    val xs = dimensionResource(R.dimen.xs) // 1dp
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val exlarge = dimensionResource(R.dimen.exlarge) //32dp
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+    val xl_text = dimensionResource(R.dimen.xltext).value.sp //32sp
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            playlistViewModel.setCoverImageUri(it.toString())
+        }
     }
 
-    LaunchedEffect(playlists) {
-        println("PlaylistsScreen: Current playlists count: ${playlists.size}")
-        playlists.forEach { playlist ->
-            println("Playlist: ${playlist.id} - ${playlist.name}")
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            imagePickerLauncher.launch("image/*")
         }
+    }
+
+    if (showDeleteDialog && playlistToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                playlistToDelete = null
+            },
+            title = {
+                Text(
+                    text = del_pl,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "$sure_del_pl \"${playlistToDelete?.name}\"? " + no_back
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            playlistToDelete?.id?.let { playlistId ->
+                                playlistViewModel.deletePlaylist(playlistId)
+                            }
+                            showDeleteDialog = false
+                            playlistToDelete = null
+                        }
+                    }
+                ) {
+                    Text(delete, color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        playlistToDelete = null
+                    }
+                ) {
+                    Text(cancel)
+                }
+            }
+        )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -67,7 +121,7 @@ fun PlaylistsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(16.dp)
+                .padding(medium)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -75,15 +129,20 @@ fun PlaylistsScreen(
             ) {
                 Icon(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(exlarge)
                         .clickable { navigateBack() },
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null
                 )
-                Text("Плейлисты", fontSize = 32.sp, modifier = Modifier.padding(start = 16.dp))
+                Text(
+                    text = pl_title,
+                    fontSize = xl_text,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = medium)
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(medium))
 
             if (playlists.isEmpty()) {
                 Box(
@@ -92,17 +151,27 @@ fun PlaylistsScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No playlists yet", color = Color.Gray)
+                    Text(
+                        text = no_pl_yet,
+                        color = Color.Gray,
+                        fontSize = m_text
+                    )
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(playlists.size) { index ->
                         val playlist = playlists[index]
-                        PlaylistContent(playlist = playlist) {
-                            println("PlaylistsScreen: Navigating to playlist ${playlist.id} - ${playlist.name}")
-                            navigateToPlaylist(playlist.id)
-                        }
-                        HorizontalDivider(thickness = 0.5.dp)
+                        PlaylistListItem(
+                            playlist = playlist,
+                            onClick = {
+                                navigateToPlaylist(playlist.id)
+                            },
+                            onLongClick = {
+                                playlistToDelete = playlist
+                                showDeleteDialog = true
+                            }
+                        )
+                        HorizontalDivider(thickness = xs)
                     }
                 }
             }
@@ -110,53 +179,19 @@ fun PlaylistsScreen(
 
         FloatingActionButton(
             onClick = {
-                println("PlaylistsScreen: FAB clicked - navigating to new playlist")
                 addNewPlaylist()
             },
             modifier = Modifier
-                .padding(16.dp)
+                .padding(medium)
                 .align(Alignment.BottomEnd),
-            containerColor = Color.Gray
+            containerColor = Color(0xFF4CAF50)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Add playlist"
+                contentDescription = null,
+                tint = Color.White
             )
         }
     }
 }
 
-
-
-
-
-@Composable
-fun PlaylistContent(playlist: Playlist, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = playlist.name,
-                fontSize = 18.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-            )
-            Text(
-                text = playlist.description,
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-            Text(
-                text = "Треков: ${playlist.tracks.size}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-        }
-    }
-}

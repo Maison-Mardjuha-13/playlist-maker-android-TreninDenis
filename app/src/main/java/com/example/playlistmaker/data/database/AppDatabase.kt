@@ -14,8 +14,8 @@ import com.example.playlistmaker.domain.models.Track
         TrackEntity::class,
         PlaylistEntity::class
     ],
-    version = 1,
-    exportSchema = false
+    version = 3,
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tracksDao(): TracksDao
@@ -55,7 +55,8 @@ fun PlaylistEntity.toPlaylist(tracks: List<Track> = emptyList()): Playlist {
         id = this.id,
         name = this.name,
         description = this.description,
-        tracks = tracks
+        tracks = tracks,
+        coverImageUri = this.coverImageUri
     )
 }
 
@@ -63,6 +64,7 @@ fun Playlist.toEntity(): PlaylistEntity {
     return PlaylistEntity(
         id = this.id,
         name = this.name,
-        description = this.description
+        description = this.description,
+        coverImageUri = this.coverImageUri
     )
 }

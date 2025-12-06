@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -28,7 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,14 @@ fun SearchScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
 
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val exlarge = dimensionResource(R.dimen.exlarge) //32dp
+
+    val large_text = dimensionResource(R.dimen.largetext).value.sp //24sp
+
+    val search_title = stringResource(R.string.search_name)
+    val enter_string = stringResource(R.string.enter_string)
+
     LaunchedEffect(searchText) {
         if (searchText.isEmpty()) {
             viewModel.clearSearch()
@@ -64,7 +74,7 @@ fun SearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(16.dp)
+            .padding(medium)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -72,16 +82,16 @@ fun SearchScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(exlarge)
                     .clickable { onBackClick() }
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(medium))
             Text(
-                text = "Search",
-                fontSize = 24.sp,
+                text = search_title,
+                fontSize = large_text,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -106,15 +116,14 @@ fun SearchScreen(
                         }
                     }
                 },
-                placeholder = { Text("Enter search query") },
+                placeholder = { Text(enter_string) },
                 leadingIcon = {
-                    Icon(Icons.Filled.Search, contentDescription = "Search")
+                    Icon(Icons.Filled.Search, contentDescription = null)
                 },
                 trailingIcon = {
                     if (searchText.isNotEmpty()) {
                         Icon(
-                            Icons.Default.Clear,
-                            "Clear",
+                            Icons.Default.Clear, contentDescription = null,
                             modifier = Modifier.clickable {
                                 searchText = ""
                                 viewModel.clearSearch()
@@ -139,7 +148,7 @@ fun SearchScreen(
 
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(medium))
 
         when {
             showHistory && searchHistory.isNotEmpty() -> {
@@ -189,11 +198,13 @@ fun SearchScreen(
 
 @Composable
 private fun InitialState() {
+    val enter_string = stringResource(R.string.enter_string)
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text("Enter search query")
+        Text(enter_string)
     }
 }
 
@@ -209,6 +220,14 @@ private fun SearchingState() {
 
 @Composable
 private fun EmptyResultsState() {
+    val small = dimensionResource(R.dimen.small) //8dp
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val xxxl = dimensionResource(R.dimen.xxxl)
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+
+    val change_search = stringResource(R.string.try_change_search)
+    val nothing_found = stringResource(R.string.nothing_found)
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -218,19 +237,19 @@ private fun EmptyResultsState() {
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_search_emply),
-                contentDescription = "No results",
-                modifier = Modifier.size(120.dp)
+                contentDescription = null,
+                modifier = Modifier.size(xxxl)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(medium))
             Text(
-                text = "Nothing found",
-                fontSize = 18.sp,
+                text = nothing_found,
+                fontSize = m_text,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(small))
             Text(
-                text = "Try changing your search query",
-                fontSize = 14.sp,
+                text = change_search,
+                fontSize = m_text,
                 color = Color.Gray
             )
         }
@@ -242,6 +261,23 @@ private fun ErrorState(
     error: String,
     onRetry: () -> Unit
 ) {
+    val xs = dimensionResource(R.dimen.xs) //0.5dp
+    val small = dimensionResource(R.dimen.small) //8dp
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val large = dimensionResource(R.dimen.large) //24dp
+    val exlarge = dimensionResource(R.dimen.exlarge) //32dp
+    val xl = dimensionResource(R.dimen.xl) //48.dp
+    val xxl = dimensionResource(R.dimen.xxl) //64dp
+    val xxxl = dimensionResource(R.dimen.xxxl)
+    val dvesti = dimensionResource(R.dimen.dvesti)
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+    val large_text = dimensionResource(R.dimen.largetext).value.sp //24sp
+
+    val server_error = stringResource(R.string.server_error)
+    val check_inet = stringResource(R.string.check_inet)
+    val retry = stringResource(R.string.retry)
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -251,26 +287,26 @@ private fun ErrorState(
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_error),
-                contentDescription = "Error",
-                modifier = Modifier.size(120.dp)
+                contentDescription = null,
+                modifier = Modifier.size(xxxl)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(medium))
             Text(
-                text = "Server error",
-                fontSize = 18.sp,
+                text = server_error,
+                fontSize = m_text,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(small))
             Text(
-                text = "Check your internet connection and try again",
-                fontSize = 14.sp,
+                text = check_inet,
+                fontSize = m_text,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(medium))
             Text(
-                text = "Retry",
+                text = retry,
                 color = Color.Blue,
-                fontSize = 16.sp,
+                fontSize = m_text,
                 modifier = Modifier.clickable(onClick = onRetry)
             )
         }
@@ -296,6 +332,13 @@ private fun SearchHistoryState(
     onHistoryItemClick: (String) -> Unit,
     onClearHistory: () -> Unit
 ) {
+    val small = dimensionResource(R.dimen.small) //8dp
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+
+    val search_history = stringResource(R.string.search_history)
+    val clear_all = stringResource(R.string.clear_all)
+
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -303,19 +346,19 @@ private fun SearchHistoryState(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Search History",
-                fontSize = 18.sp,
+                text = search_history,
+                fontSize = m_text,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Clear all",
+                text = clear_all,
                 color = Color.Blue,
-                fontSize = 14.sp,
+                fontSize = m_text,
                 modifier = Modifier.clickable(onClick = onClearHistory)
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(small))
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(history) { query ->
@@ -334,22 +377,27 @@ private fun HistoryItem(
     query: String,
     onClick: () -> Unit
 ) {
+    val medium = dimensionResource(R.dimen.medium) //16dp
+    val large = dimensionResource(R.dimen.large) //24dp
+
+    val m_text = dimensionResource(R.dimen.mediumtext).value.sp //16sp
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .padding(vertical = medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Refresh,
-            contentDescription = "History",
-            modifier = Modifier.size(24.dp)
+            contentDescription = null,
+            modifier = Modifier.size(large)
         )
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(medium))
         Text(
             text = query,
-            fontSize = 16.sp
+            fontSize = m_text
         )
     }
 }
