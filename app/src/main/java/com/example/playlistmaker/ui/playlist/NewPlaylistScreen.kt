@@ -32,6 +32,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.playlistmaker.ui.viewmodel.PlaylistViewModel
 import com.example.playlistmaker.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun NewPlaylistScreen(
@@ -44,6 +45,7 @@ fun NewPlaylistScreen(
     var description by remember { mutableStateOf("") }
     val coverImageUri by playlistViewModel.coverImageUri.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val xs = dimensionResource(R.dimen.xs) //0.5dp
     val small = dimensionResource(R.dimen.small) //8dp
@@ -66,13 +68,20 @@ fun NewPlaylistScreen(
     val save = stringResource(R.string.save)
     val del_cover = stringResource(R.string.del_cover)
 
+    var localImagePath by remember { mutableStateOf<String?>(null) }
 
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            playlistViewModel.setCoverImageUri(it.toString())
+        uri?.let { selectedUri ->
+            scope.launch {
+                val savedPath = playlistViewModel.saveCoverImage(context, selectedUri)
+                if (savedPath != null) {
+                    localImagePath = savedPath
+                    playlistViewModel.setCoverImageUri(savedPath)
+                }
+            }
         }
     }
 
