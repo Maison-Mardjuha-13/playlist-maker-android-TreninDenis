@@ -1,5 +1,7 @@
 package com.example.playlistmaker.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,6 +10,7 @@ import com.example.playlistmaker.domain.api.PlaylistsRepository
 import com.example.playlistmaker.domain.api.TracksRepository
 import com.example.playlistmaker.domain.models.Playlist
 import com.example.playlistmaker.domain.models.Track
+import com.example.playlistmaker.utils.FileUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,6 +93,19 @@ class PlaylistViewModel : ViewModel() {
     suspend fun getTrackById(trackId: Long): Track? {
         return tracksRepository.getTrackById(trackId)
     }
+
+    suspend fun saveCoverImage(context: Context, uri: Uri): String? {
+        return FileUtility.saveImageToInternalStorage(context, uri)
+    }
+
+    fun getCoverImageUri(path: String): Uri {
+        return FileUtility.getFileUri(path)
+    }
+
+    fun deleteCoverImage(context: Context, path: String?) {
+        FileUtility.deleteImageFile(context, path)
+    }
+
 
     companion object {
         fun getViewModelFactory(): ViewModelProvider.Factory = PlaylistViewModelFactory()
