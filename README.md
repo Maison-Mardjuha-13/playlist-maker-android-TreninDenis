@@ -12,7 +12,7 @@
 
 Kotlin  
 Jetpack Compose (UI)  
-Room (база данных)
+Room (база данных)  
 Retrofit (сетевые запросы)
 
 **Версии инструментов**  
