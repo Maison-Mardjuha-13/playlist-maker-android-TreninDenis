@@ -42,4 +42,7 @@ interface TracksDao {
 
     @Query("UPDATE tracks SET isFavorite = :isFavorite WHERE id = :id")
     suspend fun updateTrackFavoriteStatus(id: Long, isFavorite: Boolean)
+
+    @Query("SELECT * FROM tracks WHERE trackName LIKE :query OR artistName LIKE :query")
+    suspend fun searchTracks(query: String): List<TrackEntity>
 }

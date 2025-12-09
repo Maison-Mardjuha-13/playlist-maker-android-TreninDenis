@@ -1,6 +1,7 @@
 package com.example.playlistmaker.domain.impl
 
 import com.example.playlistmaker.data.database.dao.TracksDao
+import com.example.playlistmaker.data.database.entity.TrackEntity
 import com.example.playlistmaker.data.database.toEntity
 import com.example.playlistmaker.data.database.toTrack
 import com.example.playlistmaker.domain.api.TracksRepository
@@ -19,21 +20,28 @@ class TracksRepositoryImpl(
 ) : TracksRepository {
 
     override suspend fun searchTracks(expression: String): List<Track> {
-        return try {
-            if (expression.isBlank()) {
-                return emptyList()
-            }
+        if (expression.isBlank()) return emptyList()
 
+        return try {
             val response = iTunesApi.search(expression)
 
             if (response.isSuccessful) {
-                val results = response.body()?.results ?: emptyList()
+                val apiTracks = response.body()?.results ?: emptyList()
 
-                results.forEach { track ->
-                    tracksDao.insertTrack(track.toEntity())
+                val resultTracks = apiTracks.map { apiTrack ->
+                    val dbTrack = tracksDao.getTrackByNameAndArtist(
+                        apiTrack.trackName,
+                        apiTrack.artistName
+                    )
+
+                    apiTrack.copy(
+                        isFavorite = dbTrack?.isFavorite ?: false,
+                        playlistId = dbTrack?.playlistId
+                    )
                 }
+                saveOrUpdateTracks(apiTracks)
 
-                results
+                resultTracks
             } else {
                 emptyList()
             }
@@ -42,13 +50,47 @@ class TracksRepositoryImpl(
         }
     }
 
+    private suspend fun saveOrUpdateTracks(tracks: List<Track>) {
+        tracks.forEach { track ->
+            val existing = tracksDao.getTrackByNameAndArtist(
+                track.trackName,
+                track.artistName
+            )
+
+            if (existing != null) {
+                val updatedEntity = TrackEntity(
+                    id = track.id,
+                    trackName = track.trackName,
+                    artistName = track.artistName,
+                    collectionName = track.collectionName,
+                    trackTimeMillis = track.trackTimeMillis,
+                    artworkUrl100 = track.artworkUrl100,
+                    previewUrl = track.previewUrl,
+                    isFavorite = existing.isFavorite,
+                    playlistId = existing.playlistId
+                )
+                tracksDao.update(updatedEntity)
+            } else {
+                tracksDao.insertTrack(track.toEntity())
+            }
+        }
+    }
+
     override suspend fun getTrackByNameAndArtist(track: Track): Track? {
-        val entity = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
-        return entity?.toTrack()
+        return tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
+            ?.toTrack()
     }
 
     override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
-        tracksDao.insertTrack(track.copy(playlistId = playlistId).toEntity())
+        val existingTrack = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
+
+        if (existingTrack != null) {
+            val updatedTrack = existingTrack.copy(playlistId = playlistId)
+            tracksDao.update(updatedTrack)
+        } else {
+            val newTrack = track.toEntity().copy(playlistId = playlistId)
+            tracksDao.insertTrack(newTrack)
+        }
     }
 
     override suspend fun deleteTrackFromPlaylist(track: Track) {
@@ -56,16 +98,12 @@ class TracksRepositoryImpl(
     }
 
     override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
+        val existing = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
 
-        val existingTrack = tracksDao.getTrackByNameAndArtist(track.trackName, track.artistName)
-
-        if (existingTrack != null) {
-            val updatedTrack = existingTrack.copy(isFavorite = isFavorite)
-
-            tracksDao.update(updatedTrack)
+        if (existing != null) {
+            tracksDao.update(existing.copy(isFavorite = isFavorite))
         } else {
-            val newTrack = track.toEntity().copy(isFavorite = isFavorite)
-            tracksDao.insert(newTrack)
+            tracksDao.insertTrack(track.toEntity().copy(isFavorite = isFavorite))
         }
     }
 
@@ -75,10 +113,7 @@ class TracksRepositoryImpl(
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
         return tracksDao.getFavoriteTracks()
-            .map { trackEntities ->
-                trackEntities.map { it.toTrack() }
-            }
-            .flowOn(Dispatchers.IO)
+            .map { entities -> entities.map { it.toTrack() } }
     }
 
     override suspend fun getTrackById(trackId: Long): Track? {
