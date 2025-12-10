@@ -1,4 +1,4 @@
-package com.example.playlistmaker.ui.theme
+package com.example.myapplication123.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun PlaylistmakerTheme(
+fun MyApplication123Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
